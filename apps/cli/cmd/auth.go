@@ -29,8 +29,9 @@ func RunAuth(args []string) error {
 func RunLogin(args []string) error {
 	fs := flag.NewFlagSet("login", flag.ContinueOnError)
 	apiKeyFlag := fs.String("api-key", "", "Lorikeet API Key for headless/automated authentication")
-	providerFlag := fs.String("provider", "microsoft", "SSO identity provider: microsoft, google")
-	portalFlag := fs.String("portal", "loryai", "Portal identifier: loryai, talon")
+	clientIDFlag := fs.String("client-id", auth.DefaultClientID, "OAuth client ID")
+	authURLFlag := fs.String("auth-url", auth.TalonOAuthAuthURL, "Talon OAuth authorize URL")
+	tokenURLFlag := fs.String("token-url", auth.TalonOAuthTokenURL, "Talon OAuth token URL")
 	portFlag := fs.Int("port", auth.DefaultSSOPort, "Local callback port for browser OAuth flow")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -50,15 +51,15 @@ func RunLogin(args []string) error {
 		return nil
 	}
 
-	// Interactive browser Talon SSO flow matching loryaipentester
-	fmt.Printf("Initiating Lorikeet Talon SSO (%s) via https://lorikeetsecurity.com/api/sso-init...\n", *providerFlag)
-	creds, err := auth.LoginSSO(*portFlag, *providerFlag, *portalFlag)
+	// Interactive browser Talon OAuth flow
+	fmt.Println("Initiating Talon OAuth Authorize connection...")
+	creds, err := auth.LoginSSO(*portFlag, *clientIDFlag, *authURLFlag, *tokenURLFlag)
 	if err != nil {
-		return fmt.Errorf("SSO login failed: %w", err)
+		return fmt.Errorf("OAuth authorization failed: %w", err)
 	}
 
 	fmt.Printf("\n%s✔ Logged in as %s (%s)%s\n", tui.ColorGreen, creds.UserEmail, creds.OrgName, tui.ColorReset)
-	fmt.Printf("  Provider: %s\n", creds.AuthMethod)
+	fmt.Printf("  Method: %s\n", creds.AuthMethod)
 	fmt.Printf("  Credentials securely saved to ~/.lorikeet/credentials.json\n\n")
 	return nil
 }

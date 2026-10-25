@@ -27,3 +27,13 @@ func TestDecodeSSOToken(t *testing.T) {
 		t.Errorf("expected provider microsoft, got %s", payload.Provider)
 	}
 }
+
+func TestGeneratePKCE(t *testing.T) {
+	verifier, challenge := auth.GeneratePKCE()
+	if len(verifier) < 43 {
+		t.Errorf("expected verifier length >= 43, got %d", len(verifier))
+	}
+	if len(challenge) == 0 {
+		t.Errorf("expected non-empty challenge")
+	}
+}
