@@ -16,11 +16,11 @@ export const Colors = {
 
 export function printBanner(): void {
   console.log(`
-  ___  ____  _   _ 
- / _ \\|  _ \\| | | |  ${Colors.cyan}${Colors.bold}LORIKEET SECURITY${Colors.reset}
-| | | | |_) | |_| |  ${Colors.dim}Autonomous Hybrid-Intelligence Security Testing${Colors.reset}
-| |_| |  _ < \\__, |  ${Colors.green}Talon Synchronization Active${Colors.reset}
- \\___/|_| \\_\\ ___/   ${Colors.gray}v1.0.0${Colors.reset}
+ _        ___   ____  __   __
+| |      / _ \\ |  _ \\ \\ \\ / /  ${Colors.cyan}${Colors.bold}LORIKEET SECURITY${Colors.reset}
+| |     | | | || |_) | \\ V /   ${Colors.dim}Autonomous Hybrid-Intelligence Security Testing${Colors.reset}
+| |___  | |_| ||  _ <   | |    ${Colors.green}Talon Synchronization Active${Colors.reset}
+|_____|  \\___/ |_| \\_\\  |_|    ${Colors.gray}v1.0.0${Colors.reset}
 `);
 }
 

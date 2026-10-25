@@ -29,11 +29,11 @@ const (
 
 func PrintBanner() {
 	banner := `
-  ___  ____  _   _ 
- / _ \|  _ \| | | |  ` + ColorCyan + ColorBold + `LORIKEET SECURITY` + ColorReset + `
-| | | | |_) | |_| |  ` + ColorDim + `Autonomous Hybrid-Intelligence Security Testing` + ColorReset + `
-| |_| |  _ < \__, |  ` + ColorGreen + `Talon Synchronization Active` + ColorReset + `
- \___/|_| \_\ ___/   ` + ColorGray + `v1.0.0` + ColorReset + `
+ _        ___   ____  __   __
+| |      / _ \ |  _ \ \ \ / /  ` + ColorCyan + ColorBold + `LORIKEET SECURITY` + ColorReset + `
+| |     | | | || |_) | \ V /   ` + ColorDim + `Autonomous Hybrid-Intelligence Security Testing` + ColorReset + `
+| |___  | |_| ||  _ <   | |    ` + ColorGreen + `Talon Synchronization Active` + ColorReset + `
+|_____|  \___/ |_| \_\  |_|    ` + ColorGray + `v1.0.0` + ColorReset + `
 `
 	fmt.Println(banner)
 }
