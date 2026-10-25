@@ -314,7 +314,7 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #0c101c;
+      background: #0b0f19;
       color: #f8fafc;
       display: flex;
       align-items: center;
@@ -323,24 +323,36 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
       margin: 0;
     }
     .card {
-      background: #151d30;
+      background: #141f32;
       padding: 2.75rem 2.5rem;
       border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
       text-align: center;
       max-width: 440px;
-      border: 1px solid #242f47;
+      width: 90%%;
+      border: 1px solid #1e2c45;
     }
-    .logo-container {
-      margin-bottom: 1.75rem;
+    .brand-bar {
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 1.75rem;
     }
-    .logo-img {
-      max-height: 38px;
-      max-width: 240px;
-      object-fit: contain;
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      border: 1px solid #233554;
+    }
+    .brand-name {
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
     h1 {
       margin: 0 0 0.75rem;
@@ -366,24 +378,40 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
     }
     .badge {
       display: inline-block;
-      padding: 7px 18px;
-      background: #0369a1;
-      color: #e0f2fe;
+      padding: 8px 20px;
+      background: #0284c7;
+      color: #ffffff;
       border-radius: 9999px;
       font-size: 0.85rem;
       font-weight: 600;
       margin-top: 1.5rem;
-      border: 1px solid #0284c7;
+      border: 1px solid #38bdf8;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo-container">
-      <img src="https://lorikeetsecurity.com/images/lorikeet-logo-banner-dark.png" 
-           alt="Lorikeet Security" 
-           class="logo-img" 
-           onerror="this.onerror=null; this.src='https://lorikeetsecurity.com/talon/assets/images/lory/lory-avatar.png?v=4'; this.style.maxHeight='56px';">
+    <div class="brand-bar">
+      <div class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="#0f172a" stroke="#3b82f6" stroke-width="1.5"/>
+          <path d="M10 8C14 7 19 9 22 13C24 16 23 20 20 23C17 26 13 25 10 23C7 21 6 17 8 13C9 10 9 8 10 8Z" fill="url(#featherGlow)"/>
+          <circle cx="14" cy="13" r="2.2" fill="#ffffff"/>
+          <circle cx="14.5" cy="13" r="1.1" fill="#0f172a"/>
+          <path d="M21 14L26 16.5L21 19Z" fill="#f59e0b"/>
+          <defs>
+            <linearGradient id="featherGlow" x1="6" y1="8" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ec4899"/>
+              <stop offset="0.25" stop-color="#a855f7"/>
+              <stop offset="0.5" stop-color="#3b82f6"/>
+              <stop offset="0.75" stop-color="#06b6d4"/>
+              <stop offset="1" stop-color="#10b981"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="brand-name">LORIKEET SECURITY</span>
+      </div>
     </div>
     <h1>Authentication Successful</h1>
     <div class="user-pill">Logged in as <strong>%s</strong></div>

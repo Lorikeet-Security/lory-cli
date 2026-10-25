@@ -30,6 +30,9 @@
 - [1. Overview & Architecture](#1-overview--architecture)
 - [2. Installation & Quickstart](#2-installation--quickstart)
 - [3. Core Commands](#3-core-commands)
+  - [Talon OAuth SSO Login (`login`)](#talon-oauth-sso-login-login)
+  - [Identity & Session Status (`whoami`)](#identity--session-status-whoami)
+  - [Session Logout (`logout`)](#session-logout-logout)
   - [Lory AI Code Review (`review`)](#lory-ai-code-review-review)
   - [Auto-Remediation Quick Fix (`fix`)](#auto-remediation-quick-fix-fix)
   - [Web Security Scanner (`scan`)](#web-security-scanner-scan)
@@ -101,6 +104,81 @@ lory version
 ---
 
 ## 3. Core Commands
+
+### Talon OAuth SSO Login (`login`)
+
+`lory` natively integrates with the official **Lorikeet Security Talon Single Sign-On (SSO)** OAuth 2.0 authorization provider with RFC 7636 PKCE (S256):
+
+```bash
+# Launch interactive browser authentication via Talon OAuth
+lory login
+
+# Authenticate with custom port (defaults to 54321 with dynamic fallback)
+lory login --port 54321
+
+# Authenticate non-interactively via API key (ideal for CI/CD)
+lory login --api-key "lkmcp_xxxxxxxxxxxxxxxx"
+```
+
+#### How Talon OAuth Authorization Works
+
+```
+┌───────────┐                ┌────────────────────────┐                ┌────────────────────────┐
+│  lory CLI │                │   Local Web Browser    │                │ Lorikeet Talon Server  │
+└─────┬─────┘                └───────────┬────────────┘                └───────────┬────────────┘
+      │                                  │                                         │
+      │ 1. Spawns loopback server        │                                         │
+      │    http://127.0.0.1:54321        │                                         │
+      │ 2. Opens authorization URL ──────┼────────────────────────────────────────►│
+      │    (client_id, S256 PKCE challenge,                                        │
+      │     scope: findings:read kb:read compliance:read)                          │
+      │                                  │                                         │
+      │                                  │ 3. User approves in Talon UI            │
+      │                                  │◄────────────────────────────────────────┤
+      │                                  │ 4. Redirects to loopback callback       │
+      │ 5. Receives authorization code ◄─┼─────────────────────────────────────────┘
+      │ 6. Exchanges code + PKCE verifier                                          │
+      │    POST /talon/mcp/oauth/token ───────────────────────────────────────────►│
+      │ 7. Saves session token securely  │◄────────────────────────────────────────┤
+      ▼    in ~/.lorikeet/credentials.json
+```
+
+- **Authorization Endpoint**: `https://lorikeetsecurity.com/talon/mcp/oauth/authorize`
+- **Token Endpoint**: `https://lorikeetsecurity.com/talon/mcp/oauth/token`
+- **Scopes Requested**:
+  - `findings:read`: Access project vulnerability findings and assets
+  - `kb:read`: Query the vulnerability remediation knowledge base
+  - `compliance:read`: Access compliance frameworks and control mappings
+- **PKCE Verification**: Uses cryptographically secure random `code_verifier` hashed with `SHA-256` (`code_challenge_method=S256`), preventing authorization code interception attacks.
+
+### Identity & Session Status (`whoami`)
+
+Inspect the currently authenticated Talon identity, active scopes, and token expiration:
+
+```bash
+lory whoami
+```
+
+Sample output:
+```text
+  LORIKEET SECURITY TALON SESSION
+  Status:       Authenticated
+  User:         alice@company.com
+  Workspace:    Lorikeet Enterprise (org_ent_enterprise)
+  Auth Method:  oauth_pkce
+  Scopes:       findings:read, kb:read, compliance:read
+  Expires In:   29 days (2026-11-24 13:45:00 UTC)
+```
+
+### Session Logout (`logout`)
+
+Securely terminates the active session, clears cached tokens, and removes local credentials from `~/.lorikeet/credentials.json`:
+
+```bash
+lory logout
+```
+
+---
 
 ### Lory AI Code Review (`review`)
 
