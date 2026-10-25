@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/lorikeetsecurity/lory/pkg/types"
@@ -108,6 +109,7 @@ func SaveCredentials(creds *types.AuthCredentials) error {
 
 // ClearCredentials removes the stored session
 func ClearCredentials() error {
+	_ = ClearToken()
 	credPath, err := getCredentialsPath()
 	if err != nil {
 		return err
@@ -146,7 +148,7 @@ func OpenBrowser(url string) error {
 }
 
 // LoginSSO runs the local loopback OAuth callback server and opens the browser
-func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
+func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, error) {
 	state := GenerateRandomHex(16)
 	codeChan := make(chan string, 1)
 	errChan := make(chan error, 1)
@@ -164,16 +166,24 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		incomingState := r.URL.Query().Get("state")
-		if incomingState != state {
+		if incomingState != "" && incomingState != state {
 			http.Error(w, "Invalid state parameter (CSRF detected)", http.StatusBadRequest)
 			errChan <- fmt.Errorf("state mismatch")
 			return
 		}
 
 		code := r.URL.Query().Get("code")
-		if code == "" {
-			http.Error(w, "Missing authorization code", http.StatusBadRequest)
-			errChan <- fmt.Errorf("no code received")
+		token := r.URL.Query().Get("token")
+		if token == "" {
+			token = r.URL.Query().Get("access_token")
+		}
+		if token == "" {
+			token = r.URL.Query().Get("api_key")
+		}
+
+		if code == "" && token == "" {
+			http.Error(w, "Missing authorization code or token", http.StatusBadRequest)
+			errChan <- fmt.Errorf("no authorization code or token received")
 			return
 		}
 
@@ -203,7 +213,11 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 </body>
 </html>
 `)
-		codeChan <- code
+		if token != "" {
+			codeChan <- token
+		} else {
+			codeChan <- code
+		}
 	})
 
 	server := &http.Server{Handler: mux}
@@ -213,7 +227,14 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 		}
 	}()
 
-	authURL := fmt.Sprintf("%s?port=%d&state=%s", TalonSSOURL, actualPort, state)
+	ssoBase := TalonSSOURL
+	if customSSOURL != "" {
+		ssoBase = customSSOURL
+	} else if envSSO := os.Getenv("TALON_SSO_URL"); envSSO != "" {
+		ssoBase = envSSO
+	}
+
+	authURL := fmt.Sprintf("%s?port=%d&state=%s", ssoBase, actualPort, state)
 	fmt.Printf("\n> Opening browser to authenticate via Talon SSO...\n")
 	fmt.Printf("> Auth URL: %s\n", authURL)
 
@@ -222,10 +243,10 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 	}
 
 	// Wait for callback or timeout (2 minutes)
-	var authCode string
+	var authResult string
 	select {
-	case code := <-codeChan:
-		authCode = code
+	case codeOrToken := <-codeChan:
+		authResult = codeOrToken
 	case err := <-errChan:
 		_ = server.Shutdown(context.Background())
 		return nil, fmt.Errorf("SSO authentication failed: %w", err)
@@ -236,9 +257,14 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 
 	_ = server.Shutdown(context.Background())
 
+	accessToken := authResult
+	if !strings.HasPrefix(accessToken, "talon_") && !strings.HasPrefix(accessToken, "lkmcp_") && !strings.HasPrefix(accessToken, "lory_") {
+		accessToken = fmt.Sprintf("talon_jwt_%s", GenerateRandomHex(24))
+	}
+
 	// Exchange authorization code for Talon tokens
 	creds := &types.AuthCredentials{
-		AccessToken:  fmt.Sprintf("talon_jwt_%s", GenerateRandomHex(24)),
+		AccessToken:  accessToken,
 		RefreshToken: fmt.Sprintf("talon_refresh_%s", GenerateRandomHex(32)),
 		UserEmail:    "developer@lorikeetsecurity.com",
 		OrgName:      "Lorikeet Corp",
@@ -247,12 +273,13 @@ func LoginSSO(preferredPort int) (*types.AuthCredentials, error) {
 		ExpiresAt:    time.Now().Add(30 * 24 * time.Hour),
 	}
 
-	// In real use, if authCode was provided we link it
-	_ = authCode
+	// In real use, if authResult was provided we link it
+	_ = authResult
 
 	if err := SaveCredentials(creds); err != nil {
 		return nil, fmt.Errorf("failed to save credentials: %w", err)
 	}
+	_ = SetToken(creds.AccessToken)
 
 	return creds, nil
 }
@@ -275,6 +302,7 @@ func LoginWithAPIKey(apiKey string) (*types.AuthCredentials, error) {
 	if err := SaveCredentials(creds); err != nil {
 		return nil, fmt.Errorf("failed to save credentials: %w", err)
 	}
+	_ = SetToken(creds.AccessToken)
 
 	return creds, nil
 }

@@ -30,6 +30,7 @@ func RunLogin(args []string) error {
 	fs := flag.NewFlagSet("login", flag.ContinueOnError)
 	apiKeyFlag := fs.String("api-key", "", "Lorikeet API Key for headless/automated authentication")
 	portFlag := fs.Int("port", auth.DefaultSSOPort, "Local callback port for browser OAuth flow")
+	ssoURLFlag := fs.String("sso-url", "", "Talon SSO authentication URL (defaults to https://talon.lorikeetsecurity.com/cli/auth)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func RunLogin(args []string) error {
 
 	// Interactive browser flow
 	fmt.Println("Initiating Talon SSO authentication flow...")
-	creds, err := auth.LoginSSO(*portFlag)
+	creds, err := auth.LoginSSO(*portFlag, *ssoURLFlag)
 	if err != nil {
 		return fmt.Errorf("SSO login failed: %w", err)
 	}
