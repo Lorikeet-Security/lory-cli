@@ -1,0 +1,27 @@
+# Compiled binaries
+lory
+*.exe
+*.test
+dist/
+bin/
+
+# Credentials and local state
+.lorikeet/
+credentials.json
+
+# Dependencies
+node_modules/
+vendor/
+
+# OS and Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test & coverage
+*.out
+*.coverprofile
+coverage/
