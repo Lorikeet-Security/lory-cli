@@ -3,26 +3,34 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/lorikeetsecurity/lory/pkg/types"
 )
 
 const (
-	DefaultSSOPort = 54321
-	TalonSSOURL    = "https://talon.lorikeetsecurity.com/cli/auth"
-	TalonAPIURL    = "https://api.lorikeetsecurity.com"
+	DefaultSSOPort  = 54321
+	TalonSSOInitURL = "https://lorikeetsecurity.com/api/sso-init"
+	TalonAPIURL     = "https://api.lorikeetsecurity.com"
 )
+
+type SSOTokenPayload struct {
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+	CompanyID string `json:"company_id"`
+	Provider  string `json:"provider"`
+}
 
 func getCredentialsPath() (string, error) {
 	// 1. Try ~/.lorikeet
@@ -127,29 +135,63 @@ func GenerateRandomHex(n int) string {
 	return hex.EncodeToString(b)
 }
 
+// DecodeSSOToken decodes a base64 sso_token returned by Lorikeet SSO
+func DecodeSSOToken(s string) (*SSOTokenPayload, error) {
+	decoders := []*base64.Encoding{
+		base64.StdEncoding,
+		base64.RawStdEncoding,
+		base64.URLEncoding,
+		base64.RawURLEncoding,
+	}
+
+	var data []byte
+	var err error
+	for _, enc := range decoders {
+		data, err = enc.DecodeString(s)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("base64 decode error: %w", err)
+	}
+
+	var payload SSOTokenPayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return nil, fmt.Errorf("json unmarshal error: %w", err)
+	}
+	return &payload, nil
+}
+
 // OpenBrowser attempts to open a URL in the user's default browser
-func OpenBrowser(url string) error {
+func OpenBrowser(targetURL string) error {
 	var cmd string
 	var args []string
 
 	switch runtime.GOOS {
 	case "windows":
 		cmd = "rundll32"
-		args = []string{"url.dll,FileProtocolHandler", url}
+		args = []string{"url.dll,FileProtocolHandler", targetURL}
 	case "darwin":
 		cmd = "open"
-		args = []string{url}
+		args = []string{targetURL}
 	default: // Linux, BSD
 		cmd = "xdg-open"
-		args = []string{url}
+		args = []string{targetURL}
 	}
 
 	return exec.Command(cmd, args...).Start()
 }
 
 // LoginSSO runs the local loopback OAuth callback server and opens the browser
-func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, error) {
-	state := GenerateRandomHex(16)
+func LoginSSO(preferredPort int, provider string, portal string) (*types.AuthCredentials, error) {
+	if provider == "" {
+		provider = "microsoft"
+	}
+	if portal == "" {
+		portal = "loryai"
+	}
+
 	codeChan := make(chan string, 1)
 	errChan := make(chan error, 1)
 
@@ -165,13 +207,7 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-		incomingState := r.URL.Query().Get("state")
-		if incomingState != "" && incomingState != state {
-			http.Error(w, "Invalid state parameter (CSRF detected)", http.StatusBadRequest)
-			errChan <- fmt.Errorf("state mismatch")
-			return
-		}
-
+		ssoToken := r.URL.Query().Get("sso_token")
 		code := r.URL.Query().Get("code")
 		token := r.URL.Query().Get("token")
 		if token == "" {
@@ -181,10 +217,25 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
 			token = r.URL.Query().Get("api_key")
 		}
 
-		if code == "" && token == "" {
-			http.Error(w, "Missing authorization code or token", http.StatusBadRequest)
+		rawAuth := ssoToken
+		if rawAuth == "" {
+			rawAuth = token
+		}
+		if rawAuth == "" {
+			rawAuth = code
+		}
+
+		if rawAuth == "" {
+			http.Error(w, "Missing authorization parameters", http.StatusBadRequest)
 			errChan <- fmt.Errorf("no authorization code or token received")
 			return
+		}
+
+		userDisplay := "Talon User"
+		if ssoToken != "" {
+			if payload, err := DecodeSSOToken(ssoToken); err == nil && payload.Email != "" {
+				userDisplay = payload.Email
+			}
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -206,18 +257,15 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
   <div class="card">
     <div class="icon">🦜</div>
     <h1>Authentication Successful</h1>
-    <p>Your terminal session for <strong>lory</strong> has been securely authenticated with Talon.</p>
+    <p>Logged in as <strong>%s</strong>.</p>
+    <p>Your terminal session for <strong>lory</strong> is now securely authenticated with Talon.</p>
     <p>You can close this tab and return to your terminal.</p>
-    <div class="badge">Lorikeet Security Engine Connected</div>
+    <div class="badge">Lorikeet Security Talon Connected</div>
   </div>
 </body>
 </html>
-`)
-		if token != "" {
-			codeChan <- token
-		} else {
-			codeChan <- code
-		}
+`, userDisplay)
+		codeChan <- rawAuth
 	})
 
 	server := &http.Server{Handler: mux}
@@ -227,15 +275,15 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
 		}
 	}()
 
-	ssoBase := TalonSSOURL
-	if customSSOURL != "" {
-		ssoBase = customSSOURL
-	} else if envSSO := os.Getenv("TALON_SSO_URL"); envSSO != "" {
-		ssoBase = envSSO
-	}
+	returnURL := fmt.Sprintf("http://127.0.0.1:%d/callback", actualPort)
+	authURL := fmt.Sprintf("%s?provider=%s&portal=%s&return=%s",
+		TalonSSOInitURL,
+		url.QueryEscape(provider),
+		url.QueryEscape(portal),
+		url.QueryEscape(returnURL),
+	)
 
-	authURL := fmt.Sprintf("%s?port=%d&state=%s", ssoBase, actualPort, state)
-	fmt.Printf("\n> Opening browser to authenticate via Talon SSO...\n")
+	fmt.Printf("\n> Opening browser to authenticate via Talon SSO (%s)...\n", provider)
 	fmt.Printf("> Auth URL: %s\n", authURL)
 
 	if err := OpenBrowser(authURL); err != nil {
@@ -245,8 +293,8 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
 	// Wait for callback or timeout (2 minutes)
 	var authResult string
 	select {
-	case codeOrToken := <-codeChan:
-		authResult = codeOrToken
+	case result := <-codeChan:
+		authResult = result
 	case err := <-errChan:
 		_ = server.Shutdown(context.Background())
 		return nil, fmt.Errorf("SSO authentication failed: %w", err)
@@ -257,24 +305,34 @@ func LoginSSO(preferredPort int, customSSOURL string) (*types.AuthCredentials, e
 
 	_ = server.Shutdown(context.Background())
 
-	accessToken := authResult
-	if !strings.HasPrefix(accessToken, "talon_") && !strings.HasPrefix(accessToken, "lkmcp_") && !strings.HasPrefix(accessToken, "lory_") {
-		accessToken = fmt.Sprintf("talon_jwt_%s", GenerateRandomHex(24))
+	userEmail := "developer@lorikeetsecurity.com"
+	orgName := "Lorikeet Corp"
+	orgID := "org_talon_prod"
+	authMethod := fmt.Sprintf("sso-%s", provider)
+
+	// If this was an sso_token, decode its real user info!
+	if payload, err := DecodeSSOToken(authResult); err == nil {
+		if payload.Email != "" {
+			userEmail = payload.Email
+		}
+		if payload.CompanyID != "" {
+			orgID = payload.CompanyID
+			orgName = fmt.Sprintf("Lorikeet Org (%s)", payload.CompanyID)
+		}
+		if payload.Provider != "" {
+			authMethod = fmt.Sprintf("sso-%s", payload.Provider)
+		}
 	}
 
-	// Exchange authorization code for Talon tokens
 	creds := &types.AuthCredentials{
-		AccessToken:  accessToken,
+		AccessToken:  authResult,
 		RefreshToken: fmt.Sprintf("talon_refresh_%s", GenerateRandomHex(32)),
-		UserEmail:    "developer@lorikeetsecurity.com",
-		OrgName:      "Lorikeet Corp",
-		OrgID:        "org_talon_prod",
-		AuthMethod:   "sso",
+		UserEmail:    userEmail,
+		OrgName:      orgName,
+		OrgID:        orgID,
+		AuthMethod:   authMethod,
 		ExpiresAt:    time.Now().Add(30 * 24 * time.Hour),
 	}
-
-	// In real use, if authResult was provided we link it
-	_ = authResult
 
 	if err := SaveCredentials(creds); err != nil {
 		return nil, fmt.Errorf("failed to save credentials: %w", err)
@@ -290,11 +348,26 @@ func LoginWithAPIKey(apiKey string) (*types.AuthCredentials, error) {
 		return nil, fmt.Errorf("API key cannot be empty")
 	}
 
+	userEmail := "service-account@lorikeetsecurity.com"
+	orgName := "Lorikeet Enterprise"
+	orgID := "org_ent_enterprise"
+
+	// If the API key is actually an sso_token, decode it!
+	if payload, err := DecodeSSOToken(apiKey); err == nil {
+		if payload.Email != "" {
+			userEmail = payload.Email
+		}
+		if payload.CompanyID != "" {
+			orgID = payload.CompanyID
+			orgName = fmt.Sprintf("Lorikeet Org (%s)", payload.CompanyID)
+		}
+	}
+
 	creds := &types.AuthCredentials{
 		AccessToken: apiKey,
-		UserEmail:   "service-account@lorikeetsecurity.com",
-		OrgName:     "Lorikeet Enterprise",
-		OrgID:       "org_ent_enterprise",
+		UserEmail:   userEmail,
+		OrgName:     orgName,
+		OrgID:       orgID,
 		AuthMethod:  "api_key",
 		ExpiresAt:   time.Now().Add(365 * 24 * time.Hour),
 	}
