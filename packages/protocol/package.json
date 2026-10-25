@@ -1,0 +1,13 @@
+{
+  "name": "@lorikeetsecurity/protocol",
+  "version": "1.0.0",
+  "description": "Shared JSON and event schemas for Lorikeet Lory and Talon",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": ["security", "ast", "pentest", "talon", "lorikeet"],
+  "author": "Lorikeet Security Inc.",
+  "license": "Apache-2.0"
+}

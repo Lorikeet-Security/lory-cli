@@ -1,0 +1,21 @@
+{
+  "name": "@lorikeetsecurity/lory",
+  "version": "1.0.0",
+  "description": "Autonomous, hybrid-intelligence security testing directly from your terminal",
+  "bin": {
+    "lory": "./bin/lory.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@lorikeetsecurity/protocol": "workspace:*",
+    "@lorikeetsecurity/sdk": "workspace:*",
+    "@lorikeetsecurity/analyzer": "workspace:*"
+  },
+  "keywords": ["security", "pentest", "cli", "talon", "lorikeet", "mcp"],
+  "author": "Lorikeet Security Inc.",
+  "license": "Apache-2.0"
+}

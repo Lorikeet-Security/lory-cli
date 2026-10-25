@@ -1,0 +1,13 @@
+{
+  "name": "@lorikeetsecurity/analyzer",
+  "version": "1.0.0",
+  "description": "White-box AST mapping and route/sink extractor for Lorikeet Lory",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@lorikeetsecurity/protocol": "workspace:*"
+  },
+  "keywords": ["ast", "analysis", "routes", "security"],
+  "author": "Lorikeet Security Inc.",
+  "license": "Apache-2.0"
+}

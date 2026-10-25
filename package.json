@@ -1,0 +1,12 @@
+{
+  "name": "lorikeet-lory-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "go build -o lory apps/cli/main.go",
+    "test": "go test ./..."
+  }
+}
