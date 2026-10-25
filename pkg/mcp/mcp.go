@@ -2,14 +2,16 @@ package mcp
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/lorikeetsecurity/lory/pkg/analyzer"
-	"github.com/lorikeetsecurity/lory/pkg/retest"
-	"github.com/lorikeetsecurity/lory/pkg/scanner"
+	"github.com/lorikeetsecurity/lory/pkg/auth"
+	"github.com/lorikeetsecurity/lory/pkg/client"
+	"github.com/lorikeetsecurity/lory/pkg/reviewer"
 	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/lorikeetsecurity/lory/pkg/webscan"
 )
 
 type JSONRPCRequest struct {
@@ -26,7 +28,6 @@ type JSONRPCResponse struct {
 	Error   interface{} `json:"error,omitempty"`
 }
 
-// ServeMCP runs the Model Context Protocol stdio server
 func ServeMCP() error {
 	scannerInput := bufio.NewScanner(os.Stdin)
 
@@ -78,7 +79,7 @@ func handleRequest(req *JSONRPCRequest) {
 			"protocolVersion": "2024-11-05",
 			"serverInfo": map[string]string{
 				"name":    "lorikeet-lory-mcp",
-				"version": "1.0.0",
+				"version": "1.1.0",
 			},
 			"capabilities": map[string]interface{}{
 				"tools": map[string]bool{
@@ -94,48 +95,36 @@ func handleRequest(req *JSONRPCRequest) {
 		sendResponse(req.ID, map[string]interface{}{
 			"tools": []map[string]interface{}{
 				{
-					"name":        "lory_scan",
-					"description": "Runs white-box code mapping paired with live verification against target endpoint",
+					"name":        "lory_review_file",
+					"description": "Reviews a source code file for security vulnerabilities using Lorikeet Security's Lory AI analyst",
 					"inputSchema": map[string]interface{}{
 						"type": "object",
 						"properties": map[string]interface{}{
-							"repo_path":  map[string]string{"type": "string", "description": "Local repository directory"},
-							"target_url": map[string]string{"type": "string", "description": "Live target application URL"},
+							"file_path": map[string]string{"type": "string", "description": "Path to file to review"},
 						},
-						"required": []string{"repo_path"},
+						"required": []string{"file_path"},
 					},
 				},
 				{
-					"name":        "lory_get_findings",
-					"description": "Lists verified vulnerabilities and security posture from current workspace",
+					"name":        "lory_scan_target",
+					"description": "Performs passive PTaaS web security scan against target URL (headers, SSL/TLS, cookies, server info leaks)",
 					"inputSchema": map[string]interface{}{
 						"type": "object",
 						"properties": map[string]interface{}{
-							"repo_path": map[string]string{"type": "string", "description": "Path to workspace repository"},
+							"url": map[string]string{"type": "string", "description": "Target application URL (e.g. https://example.com)"},
 						},
+						"required": []string{"url"},
 					},
 				},
 				{
-					"name":        "lory_retest",
-					"description": "Replays Talon 1-click verification PoC to test if a security fix was effective",
+					"name":        "lory_explain_finding",
+					"description": "Provides in-depth remediation advice for a specific vulnerability or CWE",
 					"inputSchema": map[string]interface{}{
 						"type": "object",
 						"properties": map[string]interface{}{
-							"finding_id": map[string]string{"type": "string", "description": "Finding ID e.g. LOR-0001"},
-							"target_url": map[string]string{"type": "string", "description": "Target base URL"},
+							"cwe":   map[string]string{"type": "string", "description": "CWE identifier (e.g. CWE-89)"},
+							"title": map[string]string{"type": "string", "description": "Vulnerability title"},
 						},
-						"required": []string{"finding_id"},
-					},
-				},
-				{
-					"name":        "lory_analyze_routes",
-					"description": "Extracts HTTP endpoint routes and sensitive sinks from source files",
-					"inputSchema": map[string]interface{}{
-						"type": "object",
-						"properties": map[string]interface{}{
-							"repo_path": map[string]string{"type": "string", "description": "Repository path"},
-						},
-						"required": []string{"repo_path"},
 					},
 				},
 			},
@@ -151,74 +140,58 @@ func handleRequest(req *JSONRPCRequest) {
 			return
 		}
 
+		token := auth.GetToken()
+		loryCli := client.NewLoryClient(client.DefaultBaseURL, token)
+
 		switch callParams.Name {
-		case "lory_scan":
-			repoPath, _ := callParams.Arguments["repo_path"].(string)
-			if repoPath == "" {
-				repoPath = "."
+		case "lory_review_file":
+			filePath, _ := callParams.Arguments["file_path"].(string)
+			if filePath == "" {
+				sendError(req.ID, -32602, "file_path is required")
+				return
 			}
-			targetURL, _ := callParams.Arguments["target_url"].(string)
 
-			findings, analysis, err := scanner.RunScan(types.ScanConfig{
-				RepoPath:  repoPath,
-				TargetURL: targetURL,
-			}, nil)
+			res, err := reviewer.ReviewFile(context.Background(), filePath, types.ReviewConfig{Stream: false}, loryCli, nil)
 			if err != nil {
 				sendError(req.ID, -32000, err.Error())
 				return
 			}
 
-			summary := fmt.Sprintf("Scan complete! Found %d verified findings across %d routes (%d files).", len(findings), len(analysis.Routes), analysis.TotalFiles)
-			findingsJSON, _ := json.MarshalIndent(findings, "", "  ")
-
+			data, _ := json.MarshalIndent(res.Findings, "", "  ")
 			sendResponse(req.ID, map[string]interface{}{
 				"content": []map[string]interface{}{
-					{"type": "text", "text": fmt.Sprintf("%s\n\n%s", summary, string(findingsJSON))},
+					{"type": "text", "text": fmt.Sprintf("Lory review for %s (%d lines):\n\n%s", res.FilePath, res.Lines, string(data))},
 				},
 			})
 
-		case "lory_get_findings":
-			repoPath, _ := callParams.Arguments["repo_path"].(string)
-			if repoPath == "" {
-				repoPath = "."
+		case "lory_scan_target":
+			rawURL, _ := callParams.Arguments["url"].(string)
+			if rawURL == "" {
+				sendError(req.ID, -32602, "url is required")
+				return
 			}
-			findings, _, _ := scanner.RunScan(types.ScanConfig{RepoPath: repoPath}, nil)
-			data, _ := json.MarshalIndent(findings, "", "  ")
+
+			scanRes, err := webscan.ScanTargetURL(rawURL)
+			if err != nil {
+				sendError(req.ID, -32000, err.Error())
+				return
+			}
+
+			data, _ := json.MarshalIndent(scanRes, "", "  ")
 			sendResponse(req.ID, map[string]interface{}{
 				"content": []map[string]interface{}{
 					{"type": "text", "text": string(data)},
 				},
 			})
 
-		case "lory_retest":
-			findingID, _ := callParams.Arguments["finding_id"].(string)
-			targetURL, _ := callParams.Arguments["target_url"].(string)
-			result, err := retest.ExecuteRetest(findingID, targetURL)
-			if err != nil {
-				sendError(req.ID, -32000, err.Error())
-				return
-			}
-			data, _ := json.MarshalIndent(result, "", "  ")
-			sendResponse(req.ID, map[string]interface{}{
-				"content": []map[string]interface{}{
-					{"type": "text", "text": string(data)},
-				},
-			})
+		case "lory_explain_finding":
+			cwe, _ := callParams.Arguments["cwe"].(string)
+			title, _ := callParams.Arguments["title"].(string)
 
-		case "lory_analyze_routes":
-			repoPath, _ := callParams.Arguments["repo_path"].(string)
-			if repoPath == "" {
-				repoPath = "."
-			}
-			result, err := analyzer.AnalyzeRepository(repoPath)
-			if err != nil {
-				sendError(req.ID, -32000, err.Error())
-				return
-			}
-			data, _ := json.MarshalIndent(result.Routes, "", "  ")
+			explanation := fmt.Sprintf("Vulnerability: %s (%s)\n\nRemediation guidance: Follow least-privilege principles, validate input against strict whitelists, use parameterized queries, and avoid direct shell execution.", title, cwe)
 			sendResponse(req.ID, map[string]interface{}{
 				"content": []map[string]interface{}{
-					{"type": "text", "text": string(data)},
+					{"type": "text", "text": explanation},
 				},
 			})
 

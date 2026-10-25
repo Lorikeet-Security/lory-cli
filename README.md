@@ -1,193 +1,127 @@
 # Lory CLI (`lory`)
 
-> Autonomous, hybrid-intelligence security testing directly from your terminal.
+> Lorikeet Security's AI security analyst & PTaaS scanner directly in your terminal.
 
-`lory` is the official local command-line interface for [Lorikeet Security](https://lorikeetsecurity.com/lory). Modeled after the developer-first workflow of Keygraph Shannon, `lory` bridges local white-box static code analysis with live runtime verification while keeping full state synchronized with the **Talon** compliance and attestation platform.
+`lory` is the official command-line interface for [Lorikeet Security](https://lorikeetsecurity.com). It brings Lory's real-time AI code reviewer and the Lorikeet PTaaS web security scanner straight to your terminal, pre-commit hooks, and CI/CD pipelines.
 
-[![Release](https://github.com/lorikeetsecurity/lory/actions/workflows/release.yml/badge.svg)](https://github.com/lorikeetsecurity/lory/actions)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![SARIF 2.1.0](https://img.shields.io/badge/SARIF-2.1.0-brightgreen.svg)](https://sarifweb.azurewebsites.net/)
-[![SOC 2 / ISO 27001](https://img.shields.io/badge/Compliance-SOC_2_%7C_ISO_27001-blueviolet.svg)](https://lorikeetsecurity.com/talon)
+```
+ _        ___   ____  __   __
+| |      / _ \ |  _ \ \ \ / /  LORIKEET SECURITY
+| |     | | | || |_) | \ V /   AI Security Analyst & PTaaS Platform
+| |___  | |_| ||  _ <   | |    Lory Review & Web Security Scanner
+|_____|  \___/ |_| \_\  |_|    v1.1.0
+```
 
 ---
 
-## 1. Overview & Distribution
+## 1. What It Does
 
-`lory` runs as a zero-dependency standalone binary or via Node's `npx` runner for instant adoption.
+1. **Lory AI Code Review (`lory review`, `lory scan <path>`)**:
+   - Analyzes source code files across 25+ programming languages.
+   - Evaluates code against Lorikeet's real-time AI engine (`/ptaas/ajax/lory-code-review.php`) with streaming SSE findings.
+   - Identifies injection sinks (SQL, command, template, path traversal), broken auth, hardcoded secrets, SSRF, permissive CORS, and insecure framework configs.
+   - Generates exact line-anchored quick fixes with explanations.
 
-### Installation Channels
+2. **Auto-Remediation (`lory fix <path>`, `lory review --fix`)**:
+   - Automatically applies Lory's suggested quick fixes to source files in-place.
+
+3. **Git Diff & Pre-Commit (`lory diff`)**:
+   - Reviews only modified files or staged commits, ideal for pre-commit hooks and PR checks.
+
+4. **Web Security Scanner (`lory scan <url>`)**:
+   - Performs non-intrusive PTaaS web security scans against target endpoints (matching `scan-api.php`).
+   - Audits Security Headers (HSTS, CSP, X-Frame-Options, etc.), SSL/TLS certificates, Cookie security flags, Server info leaks, and `security.txt`.
+   - Computes an overall security posture score (0 - 100).
+
+5. **AI IDE Integration (`lory mcp serve`)**:
+   - Full Model Context Protocol (MCP) stdio server for **Claude Code**, **Cursor**, and any MCP client.
+
+---
+
+## 2. Quickstart
+
+### Installation
 
 ```bash
-# Instant zero-install run (Node / npx)
-npx @lorikeetsecurity/lory@latest scan
-
-# Homebrew (macOS / Linux)
-brew install lorikeetsecurity/tap/lory
-
-# Shell script installer
-curl -fsSL https://lorikeet.security/install.sh | bash
-
-# Ephemeral Docker Execution Worker
-docker pull ghcr.io/lorikeetsecurity/lory-worker:latest
-```
-
-### Local Build from Source
-
-```bash
-git clone https://github.com/lorikeetsecurity/lory-cli.git
-cd lory-cli
+# Build standalone binary from source
 make build
-./lory --help
+
+# Optional: Install to system PATH
+sudo make install
 ```
 
----
-
-## 2. Authentication Architecture
-
-`lory` supports both interactive desktop developer sessions and headless automated environments (CI/CD).
-
-```text
-                 ┌──────────────────────────────────────────────┐
-                 │                  lory auth                   │
-                 └───────────────────────┬──────────────────────┘
-                                         │
-                 ┌───────────────────────┴──────────────────────┐
-                 ▼                                              ▼
-       [ Talon SSO Browser Flow ]                     [ Headless API Key ]
-  1. CLI starts local callback server            1. Flags: --api-key / env var:
-     http://localhost:54321/callback                LORIKEET_API_KEY
-  2. Opens browser:                              2. Direct exchange with
-     https://talon.lorikeetsecurity.com/cli/auth    https://api.lorikeetsecurity.com
-  3. User completes Talon SSO                    3. Validates org permissions,
-  4. Redirect returns short-lived code              active seats, and credits
-  5. CLI exchanges code for:
-     • Bearer Access Token (JWT)
-     • Refresh Token
-                 │                                              │
-                 └───────────────────────┬──────────────────────┘
-                                         ▼
-                 ┌──────────────────────────────────────────────┐
-                 │ Secure Token Storage:                        │
-                 │ Linux: Secret Service / Keyring              │
-                 │ macOS: Keychain Access                       │
-                 │ Fallback: ~/.lorikeet/credentials.json (0600)│
-                 └──────────────────────────────────────────────┘
-```
-
-### Usage
+### Review Code
 
 ```bash
-# Interactive Talon SSO
-lory login
-# > Opening browser to authenticate via Talon SSO...
-# > Logged in as developer@lorikeetsecurity.com (Lorikeet Corp)
+# Review current repository or directory
+lory review .
 
-# Headless / CI/CD pipeline
-export LORIKEET_API_KEY="lory_live_xxxxxxxx"
-lory scan --repo . --target http://localhost:3000
+# Review a specific file with real-time streaming
+lory review src/server.js
+
+# Review and automatically apply suggested fixes
+lory fix src/server.js
+```
+
+### Scan a Live Target URL
+
+```bash
+# Audits headers, SSL/TLS, cookies, server leaks, and calculates score
+lory scan https://example.com
+```
+
+### Review Git Changes
+
+```bash
+# Review only modified files in current branch / diff
+lory diff
+
+# Review staged changes
+lory diff --cached
 ```
 
 ---
 
-## 3. System Architecture
+## 3. Ignoring Findings
 
-`lory` blends local source-code AST mapping (white-box) with active runtime validation (black-box verification).
+Lory respects the same suppression comments as the official VS Code extension:
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             Local CLI (lory)                                │
-│                                                                             │
-│  ┌─────────────────────────┐  ┌───────────────────────┐  ┌────────────────┐ │
-│  │ Interactive TUI         │  │ White-Box Code Mapper │  │ Local Docker / │ │
-│  │ (Bubbletea / Ink)       │  │ (AST, routes, auth,   │  │ Tool Sandbox   │ │
-│  │ Real-time PoC streaming │  │  sinks, sensitive IDs)│  │ (nmap, ffuf,   │ │
-│  └───────────┬─────────────┘  └───────────┬───────────┘  │  nuclei, curl) │ │
-│              │                            │              └────────┬───────┘ │
-│              └──────────────────┬─────────┴───────────────────────┘         │
-│                                 │ WebSocket / gRPC Streaming                │
-└─────────────────────────────────┼───────────────────────────────────────────┘
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Lorikeet Platform & Talon Backend                        │
-│                                                                             │
-│  ┌──────────────────────────────┐       ┌────────────────────────────────┐  │
-│  │ Lory ReAct Orchestrator      │       │ Talon Cloud Engine             │  │
-│  │ • Threat Modeling & Vectors  │◄─────►│ • Compliance Attestation Engine│  │
-│  │ • Exploit Synthesis Loop     │       │ • SOC 2 / ISO 27001 Evidence   │  │
-│  │ • Dual validation (No bogus) │       │ • 1-Click Retest Graph         │  │
-│  └──────────────────────────────┘       │ • Human-Assisted Review Queue  │  │
-│                                         └────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
+```javascript
+// lory-ignore  the id is an internal enum, not user input
+db.query(`SELECT * FROM t WHERE kind='${KIND}'`);
 ```
 
-### Sandbox Execution Modes
-To isolate execution workloads and verify vulnerabilities safely:
-1. **Local Container Sandbox:** Launches `docker run --rm -v $(pwd):/workspace ghcr.io/lorikeetsecurity/lory-worker` to test endpoints and run local tools without polluting host dependencies.
-2. **Hybrid Cloud Egress:** CLI streams AST metadata to the Lory brain, which runs external checks from Lorikeet cloud egress points back against exposed environments.
+- `lory-ignore`: Silences findings on the current line or the following line.
+- `lory-ignore-next-line`: Silences findings on the next line.
+- `lory-ignore-file`: Place anywhere in the first 20 lines to skip reviewing the entire file.
 
 ---
 
-## 4. CLI Capabilities & Command Reference
+## 4. Rate Limits & Access Tokens
 
-Every feature on the web dashboard corresponds directly to a CLI command:
+By default, Lory runs on the anonymous tier (30 requests/min, keyed to IP). To use your Lorikeet access token:
 
-| Web Feature | CLI Command | Description |
-| :--- | :--- | :--- |
-| **New Pentest Project** | `lory scan --repo . --target <url>` | Runs white-box code mapping paired with live verification. |
-| **Interactive Terminal Chat** | `lory chat` | REPL session where Lory inspects files, re-tests issues, and answers triage queries. |
-| **1-Click Retest** | `lory retest <finding-id>` | Fetches the exact replay test from Talon to confirm if a fix works. |
-| **Vulnerability Triage** | `lory findings list --status open` | Streams active, verified vulnerabilities with reproducible verification details. |
-| **Compliance Export** | `lory export --format pdf,sarif --soc2` | Generates audit-ready evidence packs, SARIF 2.1.0, and attestation artifacts. |
-| **IDE / Editor Integration** | `lory mcp serve` | Launches a Model Context Protocol stdio server for Claude Code and Cursor. |
-| **Escalate to Human Review** | `lory request-review <finding-id>` | Dispatches complex findings directly to Lorikeet's human assessment team. |
+```bash
+# Set your Lorikeet token (e.g. from portal MCP page)
+lory token set lkmcp_xxxxxxxxxxxxxxxx
 
----
+# Inspect active token status
+lory token show
 
-## 5. Repository Layout
+# Clear token and return to anonymous tier
+lory token clear
+```
 
-```text
-lory/
-├── apps/
-│   ├── cli/                      # Terminal application (Go standalone + TS/Ink)
-│   │   ├── cmd/                  # Core Go command implementations
-│   │   ├── src/                  # TypeScript CLI source
-│   │   │   ├── commands/         # Subcommand handlers (auth, scan, retest, chat, mcp)
-│   │   │   ├── auth/             # Loopback SSO callback & keychain
-│   │   │   └── ui/               # Terminal spinners, live tables, color cards
-│   │   ├── main.go               # Go entrypoint compiling to standalone binary
-│   │   └── package.json
-│   │
-│   └── worker/                   # Ephemeral container runtime
-│       ├── Dockerfile            # Tooling bundle (ffuf, nuclei, headless browser)
-│       └── runner/               # Execution sandboxing scripts
-│
-├── packages/
-│   ├── sdk/                      # Talon & Lory API Client
-│   ├── analyzer/                 # AST & endpoint route extraction
-│   └── protocol/                 # Shared JSON/Protobuf schemas
-│
-├── pkg/                          # Go internal packages
-│   ├── analyzer/                 # AST parsing & sink detection engine
-│   ├── auth/                     # OAuth SSO loopback server & credentials
-│   ├── export/                   # SARIF 2.1.0 & SOC 2 evidence generators
-│   ├── mcp/                      # Model Context Protocol stdio server
-│   ├── retest/                   # 1-click PoC replay verification
-│   ├── scanner/                  # Dual-validation orchestration engine
-│   ├── tui/                      # ANSI terminal UI & progress spinners
-│   └── types/                    # Core vulnerability & route data structures
-│
-├── .github/workflows/
-│   └── release.yml               # Binaries, Docker image, and npm publish pipelines
-├── Makefile                      # Build automation
-├── install.sh                    # One-line installer script
-└── README.md
+Alternatively, set the environment variable:
+```bash
+export LORIKEET_TOKEN="lkmcp_xxxxxxxxxxxxxxxx"
 ```
 
 ---
 
-## 6. Model Context Protocol (MCP) Integration
+## 5. Model Context Protocol (MCP) Configuration
 
-To use `lory` inside **Claude Code**, **Cursor**, or any MCP-compatible AI IDE, configure:
+Configure `lory` in Claude Code (`~/.claude.json`) or Cursor:
 
 ```json
 {
@@ -201,7 +135,20 @@ To use `lory` inside **Claude Code**, **Cursor**, or any MCP-compatible AI IDE, 
 ```
 
 Exposed MCP Tools:
-- `lory_scan`: White-box AST mapping and live exploit verification.
-- `lory_get_findings`: Retrieve confirmed vulnerabilities and triage states.
-- `lory_retest`: 1-click PoC verification to validate remediation code.
-- `lory_analyze_routes`: Source code inspection and HTTP endpoint extraction.
+- `lory_review_file`: Review a source file for security vulnerabilities using Lory AI.
+- `lory_scan_target`: Run PTaaS web security scan against a live URL.
+- `lory_explain_finding`: Detailed remediation guidance for CWEs and vulnerabilities.
+
+---
+
+## 6. Command Reference
+
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| `review` | `lory review [path...]` | Runs Lory AI code review on files or directories. |
+| `scan` | `lory scan <path\|url>` | Reviews code or runs PTaaS web security scan against URL. |
+| `fix` | `lory fix [path...]` | Reviews code and automatically applies suggested fixes. |
+| `diff` | `lory diff [git-args]` | Reviews only modified files from `git diff`. |
+| `token` | `lory token [set\|clear\|show]` | Configures Lorikeet access token for higher rate limits. |
+| `mcp` | `lory mcp serve` | Launches MCP stdio server for Claude Code and Cursor. |
+| `version` | `lory version` | Shows version information. |
