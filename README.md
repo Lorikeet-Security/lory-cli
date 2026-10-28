@@ -414,4 +414,4 @@ make clean
 
 Distributed under the Apache 2.0 License. See [LICENSE](LICENSE) for more information.
 
-Developed by [Lorikeet Security Inc.](https://lorikeetsecurity.com)
+Developed by [Lorikeet Corp](https://lorikeetsecurity.com)
