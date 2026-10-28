@@ -51,26 +51,22 @@
 
 `lory` operates across two primary security dimensions:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             Local CLI (lory)                                │
-│                                                                             │
-│   ┌──────────────────────────┐             ┌───────────────────────────┐    │
-│   │   White-Box AI Review    │             │   PTaaS Web Scanner       │    │
-│   │   • AST & Language Map   │             │   • Security Headers      │    │
-│   │   • Streaming SSE PoCs   │             │   • SSL/TLS Certificates  │    │
-│   │   • In-Place Quick Fix   │             │   • Cookie & Server Leaks │    │
-│   └────────────┬─────────────┘             └─────────────┬─────────────┘    │
-│                │                                         │                  │
-└────────────────┼─────────────────────────────────────────┼──────────────────┘
-                 │ POST /ptaas/ajax/lory-code-review.php   │ GET / HEAD Target
-                 ▼                                         ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Lorikeet Security Platform                           │
-│                                                                             │
-│   • Lory ReAct Orchestrator                • PTaaS Audit Suite              │
-│   • Exploit & Sink Synthesis               • Attestation & Scoring Engine   │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph CLI["Local CLI (lory)"]
+        direction LR
+        A["<b>White-Box AI Review</b><br/>• AST & Language Map<br/>• Streaming SSE PoCs<br/>• In-Place Quick Fix"]
+        B["<b>PTaaS Web Scanner</b><br/>• Security Headers<br/>• SSL/TLS Certificates<br/>• Cookie & Server Leaks"]
+    end
+
+    subgraph Platform["Lorikeet Security Platform"]
+        direction LR
+        C["<b>Lory ReAct Orchestrator</b><br/>• Exploit & Sink Synthesis"]
+        D["<b>PTaaS Audit Suite</b><br/>• Attestation & Scoring Engine"]
+    end
+
+    A -->|"POST /ptaas/ajax/lory-code-review.php"| Platform
+    B -->|"GET / HEAD Target"| Platform
 ```
 
 1. **White-Box Code Analysis**: Evaluates source code files across 25+ programming languages using Lorikeet's real-time AI engine. Findings stream back in real-time with exact line numbers, CWE mappings, confidence scores, and code patches.
@@ -137,25 +133,21 @@ lory login --api-key "lkmcp_xxxxxxxxxxxxxxxx"
 
 #### How Talon OAuth Authorization Works
 
-```
-┌───────────┐                ┌────────────────────────┐                ┌────────────────────────┐
-│  lory CLI │                │   Local Web Browser    │                │ Lorikeet Talon Server  │
-└─────┬─────┘                └───────────┬────────────┘                └───────────┬────────────┘
-      │                                  │                                         │
-      │ 1. Spawns loopback server        │                                         │
-      │    http://127.0.0.1:54321        │                                         │
-      │ 2. Opens authorization URL ──────┼────────────────────────────────────────►│
-      │    (client_id, S256 PKCE challenge,                                        │
-      │     scope: findings:read kb:read compliance:read)                          │
-      │                                  │                                         │
-      │                                  │ 3. User approves in Talon UI            │
-      │                                  │◄────────────────────────────────────────┤
-      │                                  │ 4. Redirects to loopback callback       │
-      │ 5. Receives authorization code ◄─┼─────────────────────────────────────────┘
-      │ 6. Exchanges code + PKCE verifier                                          │
-      │    POST /talon/mcp/oauth/token ───────────────────────────────────────────►│
-      │ 7. Saves session token securely  │◄────────────────────────────────────────┤
-      ▼    in ~/.lorikeet/credentials.json
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CLI as lory CLI
+    participant Browser as Local Web Browser
+    participant Server as Lorikeet Talon Server
+
+    Note over CLI: Spawns local loopback server<br/>http://127.0.0.1:54321
+    CLI->>Browser: Opens authorization URL with S256 PKCE challenge & scopes
+    Browser->>Server: GET /talon/mcp/oauth/authorize
+    Server-->>Browser: Prompts user consent & authorization in Talon UI
+    Browser->>CLI: Redirects to loopback callback with auth code
+    CLI->>Server: POST /talon/mcp/oauth/token (code + PKCE verifier)
+    Server-->>CLI: Returns OAuth access token & refresh token
+    Note over CLI: Saves session token securely in<br/>~/.lorikeet/credentials.json
 ```
 
 - **Authorization Endpoint**: `https://lorikeetsecurity.com/talon/mcp/oauth/authorize`
