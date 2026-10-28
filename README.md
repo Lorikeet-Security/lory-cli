@@ -55,23 +55,26 @@
 flowchart TD
     subgraph CLI["Local CLI (lory)"]
         direction LR
-        A["<b>White-Box AI Review</b><br/>• AST & Language Map<br/>• Streaming SSE PoCs<br/>• In-Place Quick Fix"]
-        B["<b>PTaaS Web Scanner</b><br/>• Security Headers<br/>• SSL/TLS Certificates<br/>• Cookie & Server Leaks"]
+        A["<b>White-Box AI Review</b><br/>• AST & Syntax Parsing<br/>• Streaming SSE PoCs<br/>• In-Place Quick Fixes"]
+        B["<b>PTaaS Web Scanner</b><br/>• Target Endpoint Auditing<br/>• Posture & Security Verification<br/>• Verified Seal Qualification"]
     end
 
     subgraph Platform["Lorikeet Security Platform"]
         direction LR
-        C["<b>Lory ReAct Orchestrator</b><br/>• Exploit & Sink Synthesis"]
-        D["<b>PTaaS Audit Suite</b><br/>• Attestation & Scoring Engine"]
+        C["<b>Lory AI Engine</b><br/>• ReAct Multi-Agent Orchestrator<br/>• Exploit & Sink Synthesis<br/>• 104+ Attack Playbooks"]
+        D["<b>Talon PTaaS Suite</b><br/>• Audit & Verification Engine<br/>• Attestation & Scoring Registry<br/>• Trust Seal Issuance"]
     end
 
+    Target["Target Web Application / Scope"]
+
     A -->|"POST /ptaas/ajax/lory-code-review.php"| Platform
-    B -->|"GET / HEAD Target"| Platform
+    B -->|"POST /ptaas/tools/scan-api.php"| Platform
+    Platform -.->|"Active / Passive Security Audit"| Target
 ```
 
 1. **White-Box Code Analysis**: Evaluates source code files across 25+ programming languages using Lorikeet's real-time AI engine. Findings stream back in real-time with exact line numbers, CWE mappings, confidence scores, and code patches.
 2. **Dual-Mode Engine**: Operates against the Lorikeet Platform API when connected, with automatic fallback to an offline SAST engine when working in air-gapped or sandboxed environments.
-3. **PTaaS Target Auditing**: Executes non-intrusive security header, SSL/TLS, and server disclosure scans against web targets matching the Lorikeet PTaaS platform.
+3. **PTaaS Target Auditing**: Dispatches live targets to the Lorikeet Security PTaaS platform API (`/ptaas/tools/scan-api.php`), running comprehensive security header, SSL/TLS certificate, cookie policy, and technology exposure audits.
 
 ---
 

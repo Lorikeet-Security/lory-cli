@@ -134,6 +134,59 @@ func (c *LoryClient) ReviewCode(ctx context.Context, req types.LoryReviewRequest
 	return &reviewResp, nil
 }
 
+// ScanWebTarget sends a URL to the Lorikeet PTaaS web security scanner endpoint on the platform
+func (c *LoryClient) ScanWebTarget(ctx context.Context, targetURL string) (*types.WebScanResult, error) {
+	url := c.BaseURL + WebScanEndpoint
+
+	payload := map[string]string{"url": targetURL}
+	reqBody, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode scan request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scan request: %w", err)
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("Accept", "application/json")
+	httpReq.Header.Set("User-Agent", UserAgent)
+	if c.Token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+c.Token)
+	}
+
+	resp, err := c.HTTPClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("connection error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var errCheck struct {
+		Error        string `json:"error"`
+		LimitReached bool   `json:"limit_reached"`
+	}
+	if err := json.Unmarshal(bodyBytes, &errCheck); err == nil && errCheck.Error != "" {
+		return nil, fmt.Errorf("%s", errCheck.Error)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("platform returned HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(bodyBytes)))
+	}
+
+	var scanResult types.WebScanResult
+	if err := json.Unmarshal(bodyBytes, &scanResult); err != nil {
+		return nil, fmt.Errorf("invalid response from scan endpoint: %w", err)
+	}
+
+	return &scanResult, nil
+}
+
 func (c *LoryClient) readSSEStream(reader io.Reader, onFinding FindingCallback) (*types.LoryReviewResponse, error) {
 	scanner := bufio.NewScanner(reader)
 	result := &types.LoryReviewResponse{
