@@ -37,12 +37,96 @@ type SSOTokenPayload struct {
 	Provider  string `json:"provider"`
 }
 
-type TokenResponse struct {
+type OAuthTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
 	Scope        string `json:"scope"`
+	UserEmail    string `json:"user_email"`
+	Email        string `json:"email"`
+	CompanyName  string `json:"company_name"`
+	OrgName      string `json:"org_name"`
+	CompanyID    string `json:"company_id"`
+	OrgID        string `json:"org_id"`
+	Sub          string `json:"sub"`
+	Subject      string `json:"subject"`
+}
+
+type TokenResponse = OAuthTokenResponse
+
+type UserInfoResponse struct {
+	Email       string `json:"email"`
+	UserEmail   string `json:"user_email"`
+	CompanyName string `json:"company_name"`
+	OrgName     string `json:"org_name"`
+	CompanyID   string `json:"company_id"`
+	OrgID       string `json:"org_id"`
+	Sub         string `json:"sub"`
+	Subject     string `json:"subject"`
+}
+
+// FetchUserInfo queries platform userinfo / whoami endpoints
+func FetchUserInfo(ctx context.Context, baseDomain, accessToken string) (*UserInfoResponse, error) {
+	endpoints := []string{
+		"/talon/api/whoami",
+		"/talon/mcp/oauth/userinfo",
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	for _, ep := range endpoints {
+		fullURL := strings.TrimRight(baseDomain, "/") + ep
+		req, err := http.NewRequestWithContext(ctx, "GET", fullURL, nil)
+		if err != nil {
+			continue
+		}
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.1.1")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			var info UserInfoResponse
+			if err := json.Unmarshal(body, &info); err == nil {
+				if info.Email == "" && info.UserEmail != "" {
+					info.Email = info.UserEmail
+				}
+				if info.CompanyName == "" && info.OrgName != "" {
+					info.CompanyName = info.OrgName
+				}
+				if info.CompanyID == "" && info.OrgID != "" {
+					info.CompanyID = info.OrgID
+				}
+				if info.Email != "" || info.CompanyName != "" || info.CompanyID != "" || info.Sub != "" || info.Subject != "" {
+					return &info, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("could not fetch user info from platform endpoints")
+}
+
+func parseJWTClaims(tokenStr string) map[string]interface{} {
+	parts := strings.Split(tokenStr, ".")
+	if len(parts) >= 2 {
+		payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			payloadBytes, err = base64.StdEncoding.DecodeString(parts[1])
+		}
+		if err == nil {
+			var claims map[string]interface{}
+			if err := json.Unmarshal(payloadBytes, &claims); err == nil {
+				return claims
+			}
+		}
+	}
+	return nil
 }
 
 func getCredentialsPath() (string, error) {
@@ -202,7 +286,7 @@ func OpenBrowser(targetURL string) error {
 }
 
 // ExchangeOAuthCode exchanges an authorization code and PKCE verifier for an access token
-func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectURI, verifier string) (*TokenResponse, error) {
+func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectURI, verifier string) (*OAuthTokenResponse, error) {
 	form := url.Values{
 		"grant_type":    {"authorization_code"},
 		"client_id":     {clientID},
@@ -217,7 +301,7 @@ func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectUR
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.1")
+	req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.1.1")
 
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)
@@ -231,7 +315,7 @@ func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectUR
 		return nil, fmt.Errorf("token exchange returned HTTP %d: %s", resp.StatusCode, string(body))
 	}
 
-	var tokenResp TokenResponse
+	var tokenResp OAuthTokenResponse
 	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("failed to parse token response: %w", err)
 	}
@@ -312,9 +396,14 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
   <meta charset="utf-8">
   <title>Lorikeet Talon Authentication</title>
   <style>
+    :root {
+      --rose-primary: #ba5663;
+      --navy-deep: #0a1628;
+      --navy-card: #142b49;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #0b0f19;
+      background: #0a1628;
       color: #f8fafc;
       display: flex;
       align-items: center;
@@ -323,14 +412,14 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
       margin: 0;
     }
     .card {
-      background: #141f32;
+      background: #142b49;
       padding: 2.75rem 2.5rem;
       border-radius: 16px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
       text-align: center;
       max-width: 440px;
       width: 90%%;
-      border: 1px solid #1e2c45;
+      border: 1px solid #1a375d;
     }
     .brand-bar {
       display: flex;
@@ -342,10 +431,10 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(15, 23, 42, 0.6);
-      padding: 6px 16px;
+      background: rgba(10, 22, 40, 0.75);
+      padding: 8px 18px;
       border-radius: 9999px;
-      border: 1px solid #233554;
+      border: 1px solid #1a375d;
     }
     .brand-name {
       color: #ffffff;
@@ -356,7 +445,7 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
     }
     h1 {
       margin: 0 0 0.75rem;
-      color: #38bdf8;
+      color: #ffffff;
       font-size: 1.6rem;
       font-weight: 700;
       letter-spacing: -0.02em;
@@ -379,14 +468,14 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
     .badge {
       display: inline-block;
       padding: 8px 20px;
-      background: #0284c7;
+      background: #ba5663;
       color: #ffffff;
       border-radius: 9999px;
       font-size: 0.85rem;
       font-weight: 600;
       margin-top: 1.5rem;
-      border: 1px solid #38bdf8;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+      border: 1px solid #db6574;
+      box-shadow: 0 4px 14px rgba(186, 86, 99, 0.4);
     }
   </style>
 </head>
@@ -394,21 +483,28 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
   <div class="card">
     <div class="brand-bar">
       <div class="brand-logo">
-        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="14" fill="#0f172a" stroke="#3b82f6" stroke-width="1.5"/>
-          <path d="M10 8C14 7 19 9 22 13C24 16 23 20 20 23C17 26 13 25 10 23C7 21 6 17 8 13C9 10 9 8 10 8Z" fill="url(#featherGlow)"/>
-          <circle cx="14" cy="13" r="2.2" fill="#ffffff"/>
-          <circle cx="14.5" cy="13" r="1.1" fill="#0f172a"/>
-          <path d="M21 14L26 16.5L21 19Z" fill="#f59e0b"/>
+        <svg width="24" height="26" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="featherGlow" x1="6" y1="8" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#ec4899"/>
-              <stop offset="0.25" stop-color="#a855f7"/>
-              <stop offset="0.5" stop-color="#3b82f6"/>
-              <stop offset="0.75" stop-color="#06b6d4"/>
-              <stop offset="1" stop-color="#10b981"/>
+            <linearGradient id="shieldNavyGrad" x1="0" y1="0" x2="28" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0a1628"/>
+              <stop offset="1" stop-color="#142b49"/>
+            </linearGradient>
+            <linearGradient id="clawCrimsonGrad" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ba5663"/>
+              <stop offset="1" stop-color="#db6574"/>
             </linearGradient>
           </defs>
+          <!-- Dual-Tone Shield Base -->
+          <path d="M14 1.5L2 6.5V15C2 22.5 7.1 29.1 14 31C20.9 29.1 26 22.5 26 15V6.5L14 1.5Z" fill="url(#shieldNavyGrad)" stroke="#1a375d" stroke-width="1.2"/>
+          <!-- Dual-Tone Split (Right Half Shading) -->
+          <path d="M14 1.5V31C20.9 29.1 26 22.5 26 15V6.5L14 1.5Z" fill="#ba5663" fill-opacity="0.2"/>
+          <!-- Inner Crimson Accent Shield -->
+          <path d="M14 4L4.5 8V14.5C4.5 20.5 8.5 25.8 14 27.5C19.5 25.8 23.5 20.5 23.5 14.5V8L14 4Z" fill="none" stroke="url(#clawCrimsonGrad)" stroke-width="0.9" stroke-opacity="0.75"/>
+          <!-- Talon Claws Mark -->
+          <path d="M9.5 9.5C10.5 12.5 10.8 15 9.8 17.5" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M14 7.5C15.2 11.5 15.2 15.5 14 19.5" stroke="#ba5663" stroke-width="2" stroke-linecap="round"/>
+          <path d="M18.5 9.5C17.5 12.5 17.2 15 18.2 17.5" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12.5 20.5L14 22.5L15.5 20.5" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="brand-name">LORIKEET SECURITY</span>
       </div>
@@ -465,9 +561,9 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 
 	_ = server.Shutdown(context.Background())
 
-	userEmail := "developer@lorikeetsecurity.com"
-	orgName := "Lorikeetsecurity"
-	orgID := "org_talon_prod"
+	userEmail := ""
+	orgName := ""
+	orgID := ""
 	authMethod := "talon-oauth"
 	accessToken := authCodeOrToken
 	refreshToken := fmt.Sprintf("talon_refresh_%s", GenerateRandomHex(32))
@@ -478,6 +574,23 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 		accessToken = tokenResp.AccessToken
 		if tokenResp.RefreshToken != "" {
 			refreshToken = tokenResp.RefreshToken
+		}
+
+		// 1. Check if tokenResp contains user_email, company_name, company_id
+		if tokenResp.UserEmail != "" {
+			userEmail = tokenResp.UserEmail
+		} else if tokenResp.Email != "" {
+			userEmail = tokenResp.Email
+		}
+		if tokenResp.CompanyName != "" {
+			orgName = tokenResp.CompanyName
+		} else if tokenResp.OrgName != "" {
+			orgName = tokenResp.OrgName
+		}
+		if tokenResp.CompanyID != "" {
+			orgID = tokenResp.CompanyID
+		} else if tokenResp.OrgID != "" {
+			orgID = tokenResp.OrgID
 		}
 	} else if payload, err := DecodeSSOToken(authCodeOrToken); err == nil {
 		// If returned auth was an sso_token
@@ -491,6 +604,83 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 		if payload.Provider != "" {
 			authMethod = fmt.Sprintf("sso-%s", payload.Provider)
 		}
+	}
+
+	// 2. If user_email or orgName is not present, query platform /talon/api/whoami or /talon/mcp/oauth/userinfo
+	if userEmail == "" || orgName == "" {
+		baseDomain := "https://lorikeetsecurity.com"
+		if u, err := url.Parse(tokenURLBase); err == nil && u.Host != "" {
+			baseDomain = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+		}
+		if uinfo, err := FetchUserInfo(context.Background(), baseDomain, accessToken); err == nil && uinfo != nil {
+			if userEmail == "" && uinfo.Email != "" {
+				userEmail = uinfo.Email
+			}
+			if orgName == "" && uinfo.CompanyName != "" {
+				orgName = uinfo.CompanyName
+			}
+			if orgID == "" && uinfo.CompanyID != "" {
+				orgID = uinfo.CompanyID
+			}
+		}
+	}
+
+	// 3. If still empty, check JWT claims in accessToken
+	if userEmail == "" || orgName == "" {
+		if claims := parseJWTClaims(accessToken); claims != nil {
+			if userEmail == "" {
+				if em, ok := claims["email"].(string); ok && em != "" {
+					userEmail = em
+				} else if em, ok := claims["user_email"].(string); ok && em != "" {
+					userEmail = em
+				} else if sub, ok := claims["sub"].(string); ok && sub != "" {
+					if strings.Contains(sub, "@") {
+						userEmail = sub
+					} else {
+						userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", sub)
+					}
+				}
+			}
+			if orgName == "" {
+				if comp, ok := claims["company_name"].(string); ok && comp != "" {
+					orgName = comp
+				} else if comp, ok := claims["org_name"].(string); ok && comp != "" {
+					orgName = comp
+				}
+			}
+			if orgID == "" {
+				if cid, ok := claims["company_id"].(string); ok && cid != "" {
+					orgID = cid
+				} else if cid, ok := claims["org_id"].(string); ok && cid != "" {
+					orgID = cid
+				}
+			}
+		}
+	}
+
+	// 4. Default to authenticated subject if still empty - never fake developer@lorikeetsecurity.com!
+	if userEmail == "" {
+		if tokenResp != nil && tokenResp.Sub != "" {
+			if strings.Contains(tokenResp.Sub, "@") {
+				userEmail = tokenResp.Sub
+			} else {
+				userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", tokenResp.Sub)
+			}
+		} else if tokenResp != nil && tokenResp.Subject != "" {
+			if strings.Contains(tokenResp.Subject, "@") {
+				userEmail = tokenResp.Subject
+			} else {
+				userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", tokenResp.Subject)
+			}
+		} else {
+			userEmail = "authenticated-user@lorikeetsecurity.com"
+		}
+	}
+	if orgName == "" {
+		orgName = "Lorikeet Security"
+	}
+	if orgID == "" {
+		orgID = "org_talon_prod"
 	}
 
 	creds := &types.AuthCredentials{

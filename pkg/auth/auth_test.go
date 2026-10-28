@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/lorikeetsecurity/lory/pkg/auth"
@@ -35,5 +36,36 @@ func TestGeneratePKCE(t *testing.T) {
 	}
 	if len(challenge) == 0 {
 		t.Errorf("expected non-empty challenge")
+	}
+}
+
+func TestOAuthTokenResponseParsing(t *testing.T) {
+	jsonBlob := []byte(`{
+		"access_token": "talon_token_12345",
+		"token_type": "Bearer",
+		"expires_in": 3600,
+		"refresh_token": "talon_refresh_67890",
+		"scope": "findings:read kb:read",
+		"user_email": "alice@acme.corp",
+		"company_name": "Acme Corp",
+		"company_id": "org_acme_prod"
+	}`)
+
+	var resp auth.OAuthTokenResponse
+	if err := json.Unmarshal(jsonBlob, &resp); err != nil {
+		t.Fatalf("failed to unmarshal OAuthTokenResponse: %v", err)
+	}
+
+	if resp.AccessToken != "talon_token_12345" {
+		t.Errorf("expected token talon_token_12345, got %s", resp.AccessToken)
+	}
+	if resp.UserEmail != "alice@acme.corp" {
+		t.Errorf("expected user_email alice@acme.corp, got %s", resp.UserEmail)
+	}
+	if resp.CompanyName != "Acme Corp" {
+		t.Errorf("expected company_name Acme Corp, got %s", resp.CompanyName)
+	}
+	if resp.CompanyID != "org_acme_prod" {
+		t.Errorf("expected company_id org_acme_prod, got %s", resp.CompanyID)
 	}
 }

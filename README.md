@@ -6,7 +6,7 @@
 | |      / _ \ |  _ \ \ \ / /   LORIKEET SECURITY
 | |     | | | || |_) | \ V /    AI Security Analyst & PTaaS Platform
 | |___  | |_| ||  _ <   | |     Lory Review & Web Security Scanner
-|_____|  \___/ |_| \_\  |_|     v1.1.0
+|_____|  \___/ |_| \_\  |_|     v1.1.1
   </pre>
   <p align="center">
     <strong>Autonomous, hybrid-intelligence security testing and AI code review directly from your terminal.</strong>
@@ -27,6 +27,7 @@
 
 ## Table of Contents
 
+- [Documentation & Wiki](#documentation--wiki)
 - [1. Overview & Architecture](#1-overview--architecture)
 - [2. Installation & Quickstart](#2-installation--quickstart)
 - [3. Core Commands](#3-core-commands)
@@ -44,6 +45,21 @@
 - [5. CI/CD Integration](#5-cicd-integration)
 - [6. Privacy & Telemetry](#6-privacy--telemetry)
 - [7. Building from Source](#7-building-from-source)
+
+---
+
+## Documentation & Wiki
+
+Comprehensive in-depth technical documentation is available in the [`docs/`](./docs/) directory:
+
+- [📘 **Documentation Home**](./docs/Home.md) — Overview, quickstart, navigation index, and feature matrix.
+- [🏛️ **Architecture**](./docs/Architecture.md) — Mermaid diagrams of CLI architecture, engine layers, and Talon OAuth PKCE loopback flow.
+- [🔐 **Authentication**](./docs/Authentication.md) — Talon OAuth login, token management, and credentials security in `~/.lorikeet/credentials.json`.
+- [🤖 **AI Code Review**](./docs/AI-Code-Review.md) — Real-time streaming SSE code reviews, CWE classification, and in-place auto-fixes (`lory review`, `lory fix`).
+- [🌐 **PTaaS Web Scanning**](./docs/PTaaS-Web-Scanning.md) — Real-time endpoint scanning via platform API `/ptaas/tools/scan-api.php` (`lory scan`).
+- [🛡️ **Trust Badges**](./docs/Trust-Badges.md) — Verified cryptographic trust seals, dual-tone shield, SaaS dark/light pills (`lory badge`).
+- [🔌 **MCP Integration**](./docs/MCP-Integration.md) — Model Context Protocol server mode (`lory mcp serve`) for Claude Code, Cursor, and IDE sidecars.
+- [🚀 **CI/CD Integration**](./docs/CI-CD.md) — GitHub Actions, GitLab CI, and headless automated security workflows.
 
 ---
 
@@ -112,7 +128,7 @@ sudo make install
 
 ```bash
 lory version
-# Output: lory version 1.1.0 (Lorikeet Security AI Reviewer)
+# Output: lory version 1.1.1 (Lorikeet Security AI Reviewer)
 ```
 
 ---

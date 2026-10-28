@@ -1,5 +1,6 @@
 {
   "name": "lorikeet-lory-monorepo",
+  "version": "1.1.1",
   "private": true,
   "workspaces": [
     "apps/*",

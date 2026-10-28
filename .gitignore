@@ -1,5 +1,6 @@
 # Compiled binaries
 lory
+lory-*
 *.exe
 *.test
 dist/
