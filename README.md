@@ -81,11 +81,25 @@
 
 ## 2. Installation & Quickstart
 
+### One-Line Install (Linux & macOS)
+
+Install the standalone binary directly to your system:
+
+```bash
+curl -fsSL https://lorikeetsecurity.com/install.sh | bash
+```
+
+Or install with Go:
+
+```bash
+go install github.com/Lorikeet-Security/lory-cli@latest
+```
+
 ### Standalone Binary (Zero Dependencies)
 
 ```bash
 # Clone repository
-git clone https://github.com/lorikeetsecurity/lory-cli.git
+git clone https://github.com/Lorikeet-Security/lory-cli.git
 cd lory-cli
 
 # Compile standalone binary
@@ -366,7 +380,7 @@ jobs:
 
       - name: Install Lory CLI
         run: |
-          curl -fsSL https://lorikeet.security/install.sh | bash
+          curl -fsSL https://lorikeetsecurity.com/install.sh | bash
 
       - name: Review Git Changes
         env:
