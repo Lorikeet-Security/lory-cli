@@ -43,6 +43,9 @@ func RunScan(args []string) error {
 		}
 
 		tui.RenderWebScanResult(res)
+		if res.Score >= 70 {
+			fmt.Printf("%s[Lorikeet Trust Badge]%s Assessment complete (%d/100). Run %s`lory badge %s`%s to generate your verified footer badge.\n\n", tui.ColorCyan, tui.ColorReset, res.Score, tui.ColorBold, res.Target, tui.ColorReset)
+		}
 		return nil
 	}
 

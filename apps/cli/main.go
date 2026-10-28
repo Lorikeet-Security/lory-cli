@@ -28,6 +28,7 @@ func printHelp() {
 	fmt.Printf("  %-24s %s\n", "retest <finding-id>", "1-click replay test to verify if a patch resolved a finding")
 	fmt.Printf("  %-24s %s\n", "findings [list]", "Stream active, verified vulnerabilities and triage state")
 	fmt.Printf("  %-24s %s\n", "export", "Generate SARIF 2.1.0 or SOC 2 / ISO 27001 evidence packs")
+	fmt.Printf("  %-24s %s\n", "badge [target]", "Generate 'Secured by Lorikeet Security' badge for footers")
 	fmt.Printf("  %-24s %s\n", "token [set|clear|show]", "Manage Lorikeet/Lory access token for higher rate limits")
 	fmt.Printf("  %-24s %s\n", "mcp serve", "Launch Model Context Protocol stdio server for Claude Code & Cursor")
 	fmt.Printf("  %-24s %s\n", "request-review <id>", "Escalate finding to Lorikeet's human assessment team")
@@ -83,6 +84,8 @@ func main() {
 		err = cmd.RunFindings(args)
 	case "export":
 		err = cmd.RunExport(args)
+	case "badge":
+		err = cmd.RunBadge(args)
 	case "request-review":
 		err = cmd.RunRequestReview(args)
 	case "token":

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/lorikeetsecurity/lory/pkg/auth"
+	"github.com/lorikeetsecurity/lory/pkg/badge"
 	"github.com/lorikeetsecurity/lory/pkg/export"
 	"github.com/lorikeetsecurity/lory/pkg/scanner"
 	"github.com/lorikeetsecurity/lory/pkg/tui"
@@ -15,7 +16,7 @@ import (
 
 func RunExport(args []string) error {
 	fs := flag.NewFlagSet("export", flag.ContinueOnError)
-	formatFlag := fs.String("format", "sarif", "Export format: sarif, json, soc2, pdf")
+	formatFlag := fs.String("format", "sarif", "Export format: sarif, json, soc2, pdf, badge")
 	soc2Flag := fs.Bool("soc2", false, "Include SOC 2 Type II / ISO 27001 compliance evidence attestation")
 	outFlag := fs.String("out", "", "File path to save output (defaults to stdout)")
 	repoFlag := fs.String("repo", ".", "Repository path")
@@ -39,6 +40,18 @@ func RunExport(args []string) error {
 	if *soc2Flag || strings.Contains(*formatFlag, "soc2") || strings.Contains(*formatFlag, "pdf") {
 		content := export.GenerateSOC2Evidence(findings, orgName)
 		outputBytes = []byte(content)
+	} else if strings.Contains(*formatFlag, "badge") {
+		badgeOpts := badge.DefaultOptions()
+		badgeOpts.OrgName = orgName
+		badgeOpts.Target = *repoFlag
+		if len(findings) == 0 {
+			badgeOpts.Status = "VERIFIED"
+			badgeOpts.Score = 100
+		} else {
+			badgeOpts.Status = "ATTENDED"
+			badgeOpts.Score = 90
+		}
+		outputBytes = []byte(badge.GenerateSVG(badgeOpts))
 	} else if strings.Contains(*formatFlag, "json") {
 		outputBytes, _ = json.MarshalIndent(findings, "", "  ")
 	} else {

@@ -38,6 +38,7 @@
   - [Web Security Scanner (`scan`)](#web-security-scanner-scan)
   - [Git Diff & Pre-Commit (`diff`)](#git-diff--pre-commit-diff)
   - [Access Token Management (`token`)](#access-token-management-token)
+  - [Website Trust Badge (`badge`)](#website-trust-badge-badge)
   - [Model Context Protocol Server (`mcp serve`)](#model-context-protocol-server-mcp-serve)
 - [4. Inline Suppression Directives](#4-inline-suppression-directives)
 - [5. CI/CD Integration](#5-cicd-integration)
@@ -276,6 +277,31 @@ Alternatively, set the environment variable in your shell or CI environment:
 ```bash
 export LORIKEET_TOKEN="lkmcp_xxxxxxxxxxxxxxxx"
 ```
+
+### Website Trust Badge (`badge`)
+
+Display a verified **"Secured by Lorikeet Security"** cryptographic trust seal in your website footer or documentation after completing an assessment:
+
+```bash
+# Generate footer HTML and Markdown embed snippets
+lory badge https://yourcompany.com
+
+# Export standalone SVG for dark or light themes
+lory badge --style pill --theme dark --format svg --out lorikeet-badge.svg
+lory badge --style shield --format svg --out lorikeet-shield.svg
+
+# Customize score or attestation status
+lory badge --target yourcompany.com --score 98 --status VERIFIED
+```
+
+#### Embed in Website Footer:
+```html
+<a href="https://lorikeetsecurity.com/verify?host=yourcompany.com" target="_blank" rel="noopener noreferrer">
+  <img src="lorikeet-badge.svg" alt="Secured by Lorikeet Security" width="240" height="44" />
+</a>
+```
+
+Pre-rendered badges and a live interactive preview are available in `assets/badges/` (`demo.html`).
 
 ### Model Context Protocol Server (`mcp serve`)
 
