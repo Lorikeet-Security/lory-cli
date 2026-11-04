@@ -35,6 +35,24 @@ type FileReviewResult struct {
 	FromAPI  bool
 }
 
+// SeverityWeight maps finding severity to comparable integer ranks
+func SeverityWeight(s types.Severity) int {
+	switch strings.ToLower(string(s)) {
+	case "critical":
+		return 4
+	case "high":
+		return 3
+	case "medium":
+		return 2
+	case "low":
+		return 1
+	case "info":
+		return 0
+	default:
+		return 1
+	}
+}
+
 // ReviewFile reviews a single source code file
 func ReviewFile(ctx context.Context, filePath string, cfg types.ReviewConfig, loryCli *client.LoryClient, onFinding client.FindingCallback) (*FileReviewResult, error) {
 	contentBytes, err := os.ReadFile(filePath)
@@ -92,12 +110,9 @@ func ReviewFile(ctx context.Context, filePath string, cfg types.ReviewConfig, lo
 		localFindings := analyzer.AnalyzeCodeLocally(content, filePath)
 		apiFindings = localFindings
 		summary = fmt.Sprintf("Locally reviewed %s (%s)", filepath.Base(filePath), lang)
-		if onFinding != nil {
-			for _, f := range localFindings {
-				onFinding(f)
-			}
-		}
 	}
+
+	minWeight := SeverityWeight(cfg.MinSeverity)
 
 	// Filter findings according to ignore comments and thresholds
 	filtered := make([]types.LoryFinding, 0)
@@ -105,8 +120,17 @@ func ReviewFile(ctx context.Context, filePath string, cfg types.ReviewConfig, lo
 		if analyzer.IsLineIgnored(lines, f.Line) {
 			continue
 		}
+		if SeverityWeight(f.Severity) < minWeight {
+			continue
+		}
 		f.FilePath = filePath
 		filtered = append(filtered, f)
+	}
+
+	if !fromAPI && onFinding != nil {
+		for _, f := range filtered {
+			onFinding(f)
+		}
 	}
 
 	// Apply fixes if requested
