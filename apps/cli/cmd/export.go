@@ -37,7 +37,9 @@ func RunExport(args []string) error {
 
 	var outputBytes []byte
 
-	if *soc2Flag || strings.Contains(*formatFlag, "soc2") || strings.Contains(*formatFlag, "pdf") {
+	if strings.Contains(*formatFlag, "pdf") {
+		outputBytes = export.GeneratePDFEvidence(findings, orgName)
+	} else if *soc2Flag || strings.Contains(*formatFlag, "soc2") {
 		content := export.GenerateSOC2Evidence(findings, orgName)
 		outputBytes = []byte(content)
 	} else if strings.Contains(*formatFlag, "badge") {
