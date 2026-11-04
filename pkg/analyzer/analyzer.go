@@ -100,18 +100,6 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 		".venv":        true,
 	}
 
-	validExts := map[string]bool{
-		".js":   true,
-		".ts":   true,
-		".jsx":  true,
-		".tsx":  true,
-		".py":   true,
-		".go":   true,
-		".rb":   true,
-		".php":  true,
-		".java": true,
-	}
-
 	err = filepath.Walk(absPath, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return nil
@@ -124,8 +112,7 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 			return nil
 		}
 
-		ext := strings.ToLower(filepath.Ext(path))
-		if !validExts[ext] {
+		if DetectLanguage(path) == "" {
 			return nil
 		}
 
@@ -183,8 +170,8 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 				})
 			}
 
-			// Route extraction: Next.js App Router (route.ts / route.js)
-			if strings.Contains(path, "app") && (strings.HasSuffix(path, "route.ts") || strings.HasSuffix(path, "route.js")) {
+			// Route extraction: Next.js App Router (route.ts / route.js / route.mts / route.mjs)
+			if strings.Contains(path, "app") && (strings.HasSuffix(path, "route.ts") || strings.HasSuffix(path, "route.js") || strings.HasSuffix(path, "route.mts") || strings.HasSuffix(path, "route.mjs")) {
 				if matches := nextRouteRegex.FindStringSubmatch(line); len(matches) > 1 {
 					frameworkSet["Next.js"] = true
 					// Infer route path from directory

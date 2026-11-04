@@ -76,3 +76,33 @@ var myRegex = regexp.MustCompile("(?i)(?:SELECT|INSERT|UPDATE|DELETE).*\\+.*(?:r
 		t.Errorf("expected 0 findings for regex definition, found %d", len(result.WhiteBoxPoCs))
 	}
 }
+
+func TestAnalyze_ModernExtensions(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "lorikeet-mjs-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	mjsCode := `app.get('/api/esm', (req, res) => res.json({ ok: true }));`
+	if err := os.WriteFile(filepath.Join(tempDir, "server.mjs"), []byte(mjsCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mtsCode := `app.post('/api/ts', (req, res) => res.json({ ok: true }));`
+	if err := os.WriteFile(filepath.Join(tempDir, "service.mts"), []byte(mtsCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := analyzer.AnalyzeRepository(tempDir)
+	if err != nil {
+		t.Fatalf("AnalyzeRepository failed: %v", err)
+	}
+
+	if result.TotalFiles != 2 {
+		t.Errorf("expected 2 files analyzed for .mjs and .mts, got %d", result.TotalFiles)
+	}
+	if len(result.Routes) != 2 {
+		t.Errorf("expected 2 routes discovered, got %d", len(result.Routes))
+	}
+}
