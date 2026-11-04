@@ -56,9 +56,10 @@ func RunScan(args []string) error {
 	}
 
 	// 2. Otherwise target is a local file or repository - run Lory AI Code Review
-	reviewArgs := []string{target, fmt.Sprintf("--format=%s", *formatFlag), fmt.Sprintf("--base-url=%s", *baseURLFlag)}
+	reviewArgs := []string{fmt.Sprintf("--format=%s", *formatFlag), fmt.Sprintf("--base-url=%s", *baseURLFlag)}
 	if *fixFlag {
 		reviewArgs = append(reviewArgs, "--fix")
 	}
+	reviewArgs = append(reviewArgs, target)
 	return RunReview(reviewArgs)
 }
