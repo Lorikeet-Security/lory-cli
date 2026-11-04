@@ -171,7 +171,7 @@ func handleRequest(req *JSONRPCRequest) {
 				return
 			}
 
-			scanRes, err := webscan.ScanTargetURL(rawURL)
+			scanRes, err := webscan.ScanTargetURLWithClient(context.Background(), loryCli, rawURL)
 			if err != nil {
 				sendError(req.ID, -32000, err.Error())
 				return
