@@ -46,28 +46,27 @@ func ExecuteRetest(findingID string, targetURL string) (*RetestResult, error) {
 	}
 
 	req, err := http.NewRequest("GET", fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("invalid retest request: %w", err)
+	}
+
+	resp, reqErr := client.Do(req)
+	if reqErr != nil {
+		return nil, fmt.Errorf("target unreachable: %w", reqErr)
+	}
+	defer resp.Body.Close()
+
 	var resolved bool
 	var observation string
-
-	if err == nil {
-		resp, reqErr := client.Do(req)
-		if reqErr != nil {
-			// If target server is not currently running, simulate successful verification test
-			resolved = true
-			observation = fmt.Sprintf("Target %s connection refused / returned 403 Forbidden. Vulnerable route is no longer accessible.", fullURL)
-		} else {
-			defer resp.Body.Close()
-			if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusNotFound {
-				resolved = true
-				observation = fmt.Sprintf("Target returned HTTP %d. Unauthorized tenant data access is now strictly blocked.", resp.StatusCode)
-			} else {
-				resolved = false
-				observation = fmt.Sprintf("Target returned HTTP %d with sensitive records payload. Vulnerability remains reproducible.", resp.StatusCode)
-			}
-		}
-	} else {
+	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized {
 		resolved = true
-		observation = "Replay assertion confirmed patch."
+		observation = fmt.Sprintf("Target returned HTTP %d. Unauthorized tenant data access is now strictly blocked.", resp.StatusCode)
+	} else if resp.StatusCode == http.StatusNotFound {
+		resolved = true
+		observation = fmt.Sprintf("Target returned HTTP %d. Vulnerable endpoint is no longer accessible.", resp.StatusCode)
+	} else {
+		resolved = false
+		observation = fmt.Sprintf("Target returned HTTP %d with sensitive records payload. Vulnerability remains reproducible.", resp.StatusCode)
 	}
 
 	newStatus := types.StatusResolved

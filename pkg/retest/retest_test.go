@@ -54,8 +54,6 @@ func TestExecuteRetestStillVulnerable(t *testing.T) {
 }
 
 func TestExecuteRetestServerUnreachable(t *testing.T) {
-	t.Skip("Known bug: connection failure or server down is erroneously marked as resolved, see #2")
-
 	// Port 59999 is inactive; connection will be refused
 	result, err := retest.ExecuteRetest("LOR-0001", "http://127.0.0.1:59999")
 	if err == nil && result.Resolved {
