@@ -9,7 +9,7 @@ import (
 )
 
 func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {
-	t.Skip("Known bug: GenerateSARIF appends duplicate rule IDs to tool.driver.rules (Phase 7 triage)")
+	t.Skip("Known bug: GenerateSARIF appends duplicate rule IDs to tool.driver.rules, see #18")
 
 	findings := []types.VulnerabilityFinding{
 		{

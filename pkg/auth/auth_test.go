@@ -71,7 +71,7 @@ func TestOAuthTokenResponseParsing(t *testing.T) {
 }
 
 func TestGetToken_LoadsFromCredentialsJson(t *testing.T) {
-	t.Skip("Known bug: auth.GetToken() fails to fall back to credentials.json (Phase 7 triage)")
+	t.Skip("Known bug: auth.GetToken() fails to fall back to credentials.json, see #11")
 
 	// When LORIKEET_TOKEN is unset and credentials.json exists with AccessToken, GetToken() should return it.
 	tok := auth.GetToken()
