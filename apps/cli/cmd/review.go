@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -56,6 +57,8 @@ func RunReview(args []string) error {
 	ctx := context.Background()
 	totalFindings := 0
 	findingIdx := 1
+	var allFindings []types.LoryFinding
+	var allResults []reviewer.FileReviewResult
 
 	if *formatFlag == "table" {
 		fmt.Printf("%sLory AI Code Review%s\n", tui.ColorBold, tui.ColorReset)
@@ -87,6 +90,8 @@ func RunReview(args []string) error {
 
 		for _, res := range results {
 			totalFindings += len(res.Findings)
+			allFindings = append(allFindings, res.Findings...)
+			allResults = append(allResults, res)
 			if *formatFlag == "table" && !cfg.Stream {
 				for _, f := range res.Findings {
 					tui.RenderLoryFinding(f, findingIdx)
@@ -96,7 +101,18 @@ func RunReview(args []string) error {
 		}
 	}
 
-	if *formatFlag == "table" {
+	if *formatFlag == "json" {
+		out := map[string]interface{}{
+			"total_findings": totalFindings,
+			"findings":       allFindings,
+			"results":        allResults,
+		}
+		data, err := json.MarshalIndent(out, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(data))
+	} else if *formatFlag == "table" {
 		fmt.Printf("\n%sReview Complete:%s %d finding(s) detected.\n", tui.ColorBold, tui.ColorReset, totalFindings)
 		if *fixFlag {
 			fmt.Printf("%s✔ Applied all available quick fixes!%s\n", tui.ColorGreen, tui.ColorReset)
