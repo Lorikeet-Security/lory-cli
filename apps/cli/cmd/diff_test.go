@@ -41,3 +41,39 @@ func TestRunDiff_SkipsDeletedFiles(t *testing.T) {
 		t.Fatalf("RunDiff failed on git diff with deleted file: %v", err)
 	}
 }
+
+func TestRunDiff_FlagsForwarding(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "lory-diff-flags-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	exec.Command("git", "-C", tempDir, "init").Run()
+	exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+	exec.Command("git", "-C", tempDir, "config", "user.name", "Test").Run()
+
+	file1 := filepath.Join(tempDir, "sample.js")
+	os.WriteFile(file1, []byte("console.log(1);"), 0644)
+	exec.Command("git", "-C", tempDir, "add", ".").Run()
+	exec.Command("git", "-C", tempDir, "commit", "-m", "init").Run()
+
+	// Modify file
+	os.WriteFile(file1, []byte("console.log(2);"), 0644)
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(oldWd)
+
+	// Passing --fix should not exit with status 129
+	err = RunDiff([]string{"--fix"})
+	if err != nil {
+		t.Fatalf("RunDiff with --fix failed: %v", err)
+	}
+
+	// Passing --format json should not fail
+	err = RunDiff([]string{"--format", "json"})
+	if err != nil {
+		t.Fatalf("RunDiff with --format json failed: %v", err)
+	}
+}
