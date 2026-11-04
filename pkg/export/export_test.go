@@ -9,8 +9,6 @@ import (
 )
 
 func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {
-	t.Skip("Known bug: GenerateSARIF appends duplicate rule IDs to tool.driver.rules, see #18")
-
 	findings := []types.VulnerabilityFinding{
 		{
 			ID:          "LOR-0001",
@@ -48,6 +46,10 @@ func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {
 	driver := tool["driver"].(map[string]interface{})
 	rules := driver["rules"].([]interface{})
 
+	if v, ok := driver["version"].(string); !ok || v != "1.1.1" {
+		t.Errorf("expected driver version 1.1.1, got %v", driver["version"])
+	}
+
 	seen := make(map[string]bool)
 	for _, r := range rules {
 		ruleObj := r.(map[string]interface{})
@@ -56,5 +58,8 @@ func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {
 			t.Errorf("SARIF contains duplicate rule ID: %s", id)
 		}
 		seen[id] = true
+	}
+	if len(rules) != 1 {
+		t.Errorf("expected exactly 1 deduplicated rule, got %d", len(rules))
 	}
 }

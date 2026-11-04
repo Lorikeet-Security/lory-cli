@@ -13,6 +13,7 @@ import (
 func GenerateSARIF(findings []types.VulnerabilityFinding) ([]byte, error) {
 	rules := make([]map[string]interface{}, 0)
 	results := make([]map[string]interface{}, 0)
+	seenRules := make(map[string]bool)
 
 	for _, f := range findings {
 		ruleLevel := "warning"
@@ -20,23 +21,26 @@ func GenerateSARIF(findings []types.VulnerabilityFinding) ([]byte, error) {
 			ruleLevel = "error"
 		}
 
-		rules = append(rules, map[string]interface{}{
-			"id":   f.ID,
-			"name": f.Title,
-			"shortDescription": map[string]string{
-				"text": f.Title,
-			},
-			"fullDescription": map[string]string{
-				"text": f.Description,
-			},
-			"defaultConfiguration": map[string]string{
-				"level": ruleLevel,
-			},
-			"properties": map[string]interface{}{
-				"tags": append([]string{"security", f.CWE}, f.ComplianceTags...),
-				"cvss": f.CVSS,
-			},
-		})
+		if !seenRules[f.ID] {
+			seenRules[f.ID] = true
+			rules = append(rules, map[string]interface{}{
+				"id":   f.ID,
+				"name": f.Title,
+				"shortDescription": map[string]string{
+					"text": f.Title,
+				},
+				"fullDescription": map[string]string{
+					"text": f.Description,
+				},
+				"defaultConfiguration": map[string]string{
+					"level": ruleLevel,
+				},
+				"properties": map[string]interface{}{
+					"tags": append([]string{"security", f.CWE}, f.ComplianceTags...),
+					"cvss": f.CVSS,
+				},
+			})
+		}
 
 		results = append(results, map[string]interface{}{
 			"ruleId":  f.ID,
@@ -72,7 +76,7 @@ func GenerateSARIF(findings []types.VulnerabilityFinding) ([]byte, error) {
 				"tool": map[string]interface{}{
 					"driver": map[string]interface{}{
 						"name":            "Lorikeet Lory",
-						"version":         "1.0.0",
+						"version":         "1.1.1",
 						"informationUri": "https://lorikeetsecurity.com/lory",
 						"rules":           rules,
 					},
