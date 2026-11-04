@@ -44,6 +44,35 @@ type WhiteBoxFinding struct {
 	CWE         string
 }
 
+// IsTestFile checks if a file path belongs to tests, test fixtures, or specs
+func IsTestFile(path string) bool {
+	lower := strings.ToLower(path)
+	base := strings.ToLower(filepath.Base(path))
+	return strings.HasSuffix(base, "_test.go") ||
+		strings.HasSuffix(base, ".test.js") ||
+		strings.HasSuffix(base, ".test.ts") ||
+		strings.HasSuffix(base, ".test.jsx") ||
+		strings.HasSuffix(base, ".test.tsx") ||
+		strings.HasSuffix(base, ".spec.js") ||
+		strings.HasSuffix(base, ".spec.ts") ||
+		strings.HasSuffix(base, ".spec.jsx") ||
+		strings.HasSuffix(base, ".spec.tsx") ||
+		strings.Contains(lower, "/test/") ||
+		strings.Contains(lower, "/tests/") ||
+		strings.Contains(lower, "/fixtures/") ||
+		strings.Contains(lower, "/__tests__/")
+}
+
+func isRegexDefinition(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.Contains(line, "regexp.MustCompile") ||
+		strings.Contains(line, "regexp.Compile") ||
+		strings.Contains(line, "RegExp(") ||
+		strings.HasPrefix(trimmed, "//") ||
+		strings.HasPrefix(trimmed, "/*") ||
+		strings.HasPrefix(trimmed, "*")
+}
+
 // AnalyzeRepository parses source code files to build AST and route maps
 func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 	absPath, err := filepath.Abs(repoPath)
@@ -170,6 +199,11 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 						AuthRequired: false,
 					})
 				}
+			}
+
+			// Vulnerability Sink detection (skip regex definitions and test files)
+			if isRegexDefinition(line) || IsTestFile(path) {
+				continue
 			}
 
 			// Vulnerability Sink: SQL Injection

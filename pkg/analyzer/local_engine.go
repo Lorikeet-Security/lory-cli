@@ -91,13 +91,13 @@ func AnalyzeCodeLocally(content, filePath string) []types.LoryFinding {
 	lines := strings.Split(content, "\n")
 	findings := make([]types.LoryFinding, 0)
 
-	if IsFileIgnored(content) {
+	if IsFileIgnored(content) || IsTestFile(filePath) {
 		return findings
 	}
 
 	for lineIdx, line := range lines {
 		lineNum := lineIdx + 1
-		if IsLineIgnored(lines, lineNum) {
+		if IsLineIgnored(lines, lineNum) || isRegexDefinition(line) {
 			continue
 		}
 
