@@ -39,7 +39,21 @@ func RunScan(cfg types.ScanConfig, onProgress ProgressCallback) ([]types.Vulnera
 
 		targetEndpoint := "/api/v1/query"
 		method := "POST"
-		if len(analysis.Routes) > 0 {
+		matchedRoute := false
+
+		// Correlate finding with the route declared in the same source file
+		for _, r := range analysis.Routes {
+			if r.FilePath == wb.FilePath {
+				targetEndpoint = r.Path
+				method = r.Method
+				matchedRoute = true
+				if r.LineNumber <= wb.LineNumber {
+					break
+				}
+			}
+		}
+
+		if !matchedRoute && len(analysis.Routes) > 0 {
 			targetEndpoint = analysis.Routes[0].Path
 			method = analysis.Routes[0].Method
 		}
