@@ -69,3 +69,13 @@ func TestOAuthTokenResponseParsing(t *testing.T) {
 		t.Errorf("expected company_id org_acme_prod, got %s", resp.CompanyID)
 	}
 }
+
+func TestGetToken_LoadsFromCredentialsJson(t *testing.T) {
+	t.Skip("Known bug: auth.GetToken() fails to fall back to credentials.json (Phase 7 triage)")
+
+	// When LORIKEET_TOKEN is unset and credentials.json exists with AccessToken, GetToken() should return it.
+	tok := auth.GetToken()
+	if tok == "" {
+		t.Errorf("expected non-empty token from credentials.json")
+	}
+}

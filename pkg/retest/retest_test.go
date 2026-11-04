@@ -52,3 +52,13 @@ func TestExecuteRetestStillVulnerable(t *testing.T) {
 		t.Errorf("expected status VERIFIED, got %s", result.NewStatus)
 	}
 }
+
+func TestExecuteRetestServerUnreachable(t *testing.T) {
+	t.Skip("Known bug: connection failure or server down is erroneously marked as resolved (Phase 7 triage)")
+
+	// Port 59999 is inactive; connection will be refused
+	result, err := retest.ExecuteRetest("LOR-0001", "http://127.0.0.1:59999")
+	if err == nil && result.Resolved {
+		t.Errorf("expected retest to fail or be unverified on unreachable host, but got resolved=true")
+	}
+}
