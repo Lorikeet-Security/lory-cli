@@ -42,9 +42,17 @@ func GetToken() string {
 	path, err := getTokenFilePath()
 	if err == nil {
 		if data, err := os.ReadFile(path); err == nil {
-			return strings.TrimSpace(string(data))
+			if tok := strings.TrimSpace(string(data)); tok != "" {
+				return tok
+			}
 		}
 	}
+
+	// Fallback to credentials.json saved during lory login
+	if creds, err := LoadCredentials(); err == nil && creds != nil && creds.AccessToken != "" {
+		return strings.TrimSpace(creds.AccessToken)
+	}
+
 	return ""
 }
 
