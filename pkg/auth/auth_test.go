@@ -2,9 +2,11 @@ package auth_test
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/lorikeetsecurity/lory/pkg/auth"
+	"github.com/lorikeetsecurity/lory/pkg/types"
 )
 
 func TestDecodeSSOToken(t *testing.T) {
@@ -71,11 +73,23 @@ func TestOAuthTokenResponseParsing(t *testing.T) {
 }
 
 func TestGetToken_LoadsFromCredentialsJson(t *testing.T) {
-	t.Skip("Known bug: auth.GetToken() fails to fall back to credentials.json, see #11")
+	// Clear any environment variables that might shadow credentials.json
+	os.Unsetenv("LORIKEET_TOKEN")
+	os.Unsetenv("LORY_TOKEN")
+	os.Unsetenv("LORIKEET_API_KEY")
 
-	// When LORIKEET_TOKEN is unset and credentials.json exists with AccessToken, GetToken() should return it.
+	// Save test credentials to credentials.json
+	creds := &types.AuthCredentials{
+		AccessToken: "test-oauth-token-xyz-987",
+		UserEmail:   "dev@example.com",
+		OrgName:     "Test Org",
+	}
+	if err := auth.SaveCredentials(creds); err != nil {
+		t.Fatalf("SaveCredentials failed: %v", err)
+	}
+
 	tok := auth.GetToken()
-	if tok == "" {
-		t.Errorf("expected non-empty token from credentials.json")
+	if tok != "test-oauth-token-xyz-987" {
+		t.Errorf("expected 'test-oauth-token-xyz-987' from credentials.json, got '%s'", tok)
 	}
 }
