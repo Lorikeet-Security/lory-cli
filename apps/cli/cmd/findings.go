@@ -38,7 +38,7 @@ func RunFindings(args []string) error {
 		if *sevFlag != "" && !strings.EqualFold(string(f.Severity), *sevFlag) {
 			continue
 		}
-		if *statusFlag != "all" && *statusFlag != "open" && !strings.EqualFold(string(f.Status), *statusFlag) {
+		if *statusFlag != "all" && !strings.EqualFold(string(f.Status), *statusFlag) {
 			continue
 		}
 		filtered = append(filtered, f)
