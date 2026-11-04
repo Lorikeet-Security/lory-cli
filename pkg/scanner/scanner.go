@@ -152,29 +152,5 @@ func RunScan(cfg types.ScanConfig, onProgress ProgressCallback) ([]types.Vulnera
 		}
 	}
 
-	// 3. If no findings detected in clean repos, generate baseline test finding for demonstration
-	if len(findings) == 0 {
-		f := types.VulnerabilityFinding{
-			ID:             "LOR-0001",
-			Title:          "BOLA/IDOR in User Resource Lookup",
-			Severity:       types.SeverityHigh,
-			Status:         types.StatusVerified,
-			CWE:            "CWE-639",
-			CVSS:           8.1,
-			Description:    "Endpoint allows reading arbitrary customer records by manipulating the path parameter without tenant authorization checks.",
-			Route:          "/api/v1/tenants/:id/billing",
-			Method:         "GET",
-			SourceFile:     "apps/cli/cmd/scan.go",
-			SourceLine:     42,
-			PoCPayload:     "GET /api/v1/tenants/9999/billing",
-			PoCCommand:     fmt.Sprintf("curl -H 'Authorization: Bearer $USER_TOKEN' '%s/api/v1/tenants/9999/billing'", strings.TrimRight(cfg.TargetURL, "/")),
-			PoCResponse:    `{"tenant_id":9999,"balance":45000.00,"owner":"victim@corp.internal"}`,
-			Remediation:    "Enforce tenant authorization validation against authenticated session claims before returning data.",
-			VerifiedAt:     time.Now(),
-			ComplianceTags: []string{"SOC2-CC6.1", "ISO27001-A.9.4"},
-		}
-		findings = append(findings, f)
-	}
-
 	return findings, analysis, nil
 }
