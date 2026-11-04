@@ -23,7 +23,27 @@ func RunBadge(args []string) error {
 	outFlag := fs.String("out", "", "Write output to file (e.g. badge.svg or badge.html)")
 	verifyURLFlag := fs.String("verify-url", "", "Custom attestation verification link")
 
-	if err := fs.Parse(args); err != nil {
+	// Reorder args so flags precede positional arguments (allowing `lory badge <target> [flags]`)
+	var flagArgs, posArgs []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if strings.HasPrefix(arg, "-") {
+			flagArgs = append(flagArgs, arg)
+			if !strings.Contains(arg, "=") && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+				flagName := strings.TrimLeft(arg, "-")
+				switch flagName {
+				case "style", "theme", "format", "score", "status", "target", "out", "verify-url":
+					i++
+					flagArgs = append(flagArgs, args[i])
+				}
+			}
+		} else {
+			posArgs = append(posArgs, arg)
+		}
+	}
+	reordered := append(flagArgs, posArgs...)
+
+	if err := fs.Parse(reordered); err != nil {
 		if err == flag.ErrHelp {
 			return nil
 		}
