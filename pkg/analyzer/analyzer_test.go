@@ -52,8 +52,6 @@ app.post('/api/admin/login', (req, res) => {
 }
 
 func TestAnalyze_DoesNotSelfMatchRegex(t *testing.T) {
-	t.Skip("Known bug: static analyzer regex self-matches its own regex definition, see #4")
-
 	tempDir, err := os.MkdirTemp("", "lorikeet-selfmatch-*")
 	if err != nil {
 		t.Fatal(err)
