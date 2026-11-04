@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net/url"
+	"os"
 	"strings"
 
 	"github.com/lorikeetsecurity/lory/pkg/auth"
@@ -12,6 +14,37 @@ import (
 	"github.com/lorikeetsecurity/lory/pkg/tui"
 	"github.com/lorikeetsecurity/lory/pkg/webscan"
 )
+
+func isWebTarget(target string) bool {
+	// 1. Explicit web schemes are always web targets
+	if strings.HasPrefix(target, "http://") || strings.HasPrefix(target, "https://") {
+		return true
+	}
+
+	// 2. Existing local file or directory paths are always code review targets
+	if _, err := os.Stat(target); err == nil {
+		return false
+	}
+
+	// 3. Slashes without scheme indicate a local relative or absolute filesystem path
+	if strings.Contains(target, "/") || strings.Contains(target, "\\") {
+		return false
+	}
+
+	// 4. Localhost or loopback endpoints
+	lower := strings.ToLower(target)
+	if strings.HasPrefix(lower, "localhost") || strings.HasPrefix(lower, "127.0.0.1") || strings.HasPrefix(lower, "0.0.0.0") {
+		return true
+	}
+
+	// 5. Hostname or host:port combinations
+	u, err := url.Parse("http://" + target)
+	if err == nil && u.Host != "" && (strings.Contains(u.Host, ".") || strings.Contains(u.Host, ":")) {
+		return true
+	}
+
+	return false
+}
 
 func RunScan(args []string) error {
 	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
@@ -29,7 +62,7 @@ func RunScan(args []string) error {
 	}
 
 	// 1. If target is a Web URL, execute PTaaS Web Security Scan via platform scan-api.php
-	if strings.HasPrefix(target, "http://") || strings.HasPrefix(target, "https://") || strings.Contains(target, ".com") || strings.Contains(target, ".org") || strings.Contains(target, ".net") || strings.Contains(target, ".io") {
+	if isWebTarget(target) {
 		if *formatFlag == "table" {
 			tui.PrintBanner()
 			tui.Spin(fmt.Sprintf("Running Lorikeet PTaaS Web Security Scan against %s...", target), 500)
