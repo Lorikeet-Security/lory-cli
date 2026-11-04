@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -24,7 +25,10 @@ func RunDiff(args []string) error {
 	for _, f := range files {
 		f = strings.TrimSpace(f)
 		if f != "" && analyzer.DetectLanguage(f) != "" {
-			validFiles = append(validFiles, f)
+			// Skip deleted files that no longer exist on disk
+			if _, err := os.Stat(f); err == nil {
+				validFiles = append(validFiles, f)
+			}
 		}
 	}
 
