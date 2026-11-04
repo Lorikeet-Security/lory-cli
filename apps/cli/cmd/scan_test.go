@@ -19,27 +19,35 @@ func TestIsWebTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if isWebTarget(comFile) {
+	if IsWebTarget(comFile) {
 		t.Errorf("expected %s to be recognized as file review, not web target", comFile)
 	}
 
-	if !isWebTarget("http://localhost:8080") {
+	if !IsWebTarget("http://localhost:8080") {
 		t.Errorf("expected http://localhost:8080 to be web target")
 	}
 
-	if !isWebTarget("localhost:8080") {
+	if !IsWebTarget("https://app.lorikeetsecurity.com") {
+		t.Errorf("expected https://app.lorikeetsecurity.com to be web target")
+	}
+
+	if !IsWebTarget("https://example.com/api/v1") {
+		t.Errorf("expected https://example.com/api/v1 to be web target")
+	}
+
+	if !IsWebTarget("localhost:8080") {
 		t.Errorf("expected localhost:8080 to be web target")
 	}
 
-	if !isWebTarget("127.0.0.1:3000") {
+	if !IsWebTarget("127.0.0.1:3000") {
 		t.Errorf("expected 127.0.0.1:3000 to be web target")
 	}
 
-	if !isWebTarget("example.com") {
+	if !IsWebTarget("example.com") {
 		t.Errorf("expected example.com to be web target")
 	}
 
-	if isWebTarget("./local/file.go") {
+	if IsWebTarget("./local/file.go") {
 		t.Errorf("expected ./local/file.go to be recognized as file path")
 	}
 }

@@ -98,7 +98,7 @@ func main() {
 		printHelp()
 	default:
 		// If first arg looks like a file, directory or URL, treat as `lory scan <arg>`
-		if _, statErr := os.Stat(command); statErr == nil || os.Args[1] == "." {
+		if _, statErr := os.Stat(command); statErr == nil || command == "." || cmd.IsWebTarget(command) {
 			err = cmd.RunScan(os.Args[1:])
 		} else {
 			fmt.Printf("%sError: unknown command '%s'%s\n\n", tui.ColorRed, command, tui.ColorReset)

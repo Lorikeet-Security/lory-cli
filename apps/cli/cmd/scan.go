@@ -15,7 +15,7 @@ import (
 	"github.com/lorikeetsecurity/lory/pkg/webscan"
 )
 
-func isWebTarget(target string) bool {
+func IsWebTarget(target string) bool {
 	// 1. Explicit web schemes are always web targets
 	if strings.HasPrefix(target, "http://") || strings.HasPrefix(target, "https://") {
 		return true
@@ -62,7 +62,7 @@ func RunScan(args []string) error {
 	}
 
 	// 1. If target is a Web URL, execute PTaaS Web Security Scan via platform scan-api.php
-	if isWebTarget(target) {
+	if IsWebTarget(target) {
 		if *formatFlag == "table" {
 			tui.PrintBanner()
 			tui.Spin(fmt.Sprintf("Running Lorikeet PTaaS Web Security Scan against %s...", target), 500)
