@@ -18,12 +18,41 @@ func RunDiff(args []string) error {
 	fixFlag := fs.Bool("fix", false, "Automatically apply suggested Lory quick fixes")
 	minSevFlag := fs.String("min-severity", "low", "Minimum severity to report")
 	formatFlag := fs.String("format", "table", "Output format: table, json")
-	if err := fs.Parse(args); err != nil {
+	cachedFlag := fs.Bool("cached", false, "Review staged changes in the git index")
+	stagedFlag := fs.Bool("staged", false, "Review staged changes in the git index")
+
+	// Partition arguments so flags are parsed even if git refs precede them
+	var flagArgs, posArgs []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if strings.HasPrefix(arg, "-") {
+			flagArgs = append(flagArgs, arg)
+			if !strings.Contains(arg, "=") && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+				flagName := strings.TrimLeft(arg, "-")
+				switch flagName {
+				case "base-url", "token", "min-severity", "format":
+					i++
+					flagArgs = append(flagArgs, args[i])
+				}
+			}
+		} else {
+			posArgs = append(posArgs, arg)
+		}
+	}
+	reordered := append(flagArgs, posArgs...)
+
+	if err := fs.Parse(reordered); err != nil {
+		if err == flag.ErrHelp {
+			return nil
+		}
 		return err
 	}
 
 	gitRefs := fs.Args()
 	cmdArgs := []string{"diff", "--name-only"}
+	if *cachedFlag || *stagedFlag {
+		cmdArgs = append(cmdArgs, "--cached")
+	}
 	if len(gitRefs) > 0 {
 		cmdArgs = append(cmdArgs, gitRefs...)
 	}
