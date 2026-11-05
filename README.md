@@ -283,6 +283,42 @@ lory diff --cached
 lory diff main...feature-branch
 ```
 
+### Compliance & Report Export (`export`)
+
+Generate standard OASIS SARIF 2.1.0 or SOC 2 Type II / ISO 27001 compliance evidence packs:
+
+```bash
+# Export standard SARIF 2.1.0 report for GitHub Code Scanning
+lory export --format sarif --out results.sarif
+
+# Export audit-ready SOC 2 / ISO 27001 attestation pack (Markdown)
+lory export --format soc2 --out soc2-evidence.md
+
+# Export binary PDF compliance report
+lory export --format pdf --out compliance-report.pdf
+```
+
+### Findings Management & Triage (`findings`)
+
+Stream active and verified vulnerabilities discovered across your project:
+
+```bash
+# List all verified findings
+lory findings --status verified
+
+# List open findings
+lory findings --status open
+```
+
+### 1-Click Retest Verification (`retest`)
+
+Replay exploit verification against a finding to confirm that a fix resolved the vulnerability:
+
+```bash
+# Replay verification against target endpoint
+lory retest LOR-0001
+```
+
 ### Access Token Management (`token`)
 
 Lory supports an anonymous tier (30 requests/min, keyed to egress IP). Authenticating with your Lorikeet access token raises the ceiling to 120 req/min:
@@ -321,7 +357,7 @@ lory badge --target yourcompany.com --score 98 --status VERIFIED
 
 #### Embed in Website Footer:
 ```html
-<a href="https://lorikeetsecurity.com/verify?host=yourcompany.com" target="_blank" rel="noopener noreferrer">
+<a href="https://lorikeetsecurity.com/trust-center?target=yourcompany.com" target="_blank" rel="noopener noreferrer">
   <img src="lorikeet-badge.svg" alt="Secured by Lorikeet Security" width="240" height="44" />
 </a>
 ```

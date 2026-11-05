@@ -16,7 +16,7 @@ lory scan https://example.com
 lory scan https://api.example.com --format=json
 ```
 
-When a URL (beginning with `http://` or `https://`, or containing a common TLD like `.com`, `.org`, `.net`, `.io`) is supplied to `lory scan`, it automatically activates the PTaaS Web Security Scanner instead of local file review.
+When an endpoint URL (beginning with `http://` or `https://`, loopback address, or valid hostname/domain) is supplied to `lory scan`, it automatically activates the PTaaS Web Security Scanner instead of local file review (local file and directory paths always take precedence).
 
 ---
 

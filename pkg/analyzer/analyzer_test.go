@@ -106,3 +106,46 @@ func TestAnalyze_ModernExtensions(t *testing.T) {
 		t.Errorf("expected 2 routes discovered, got %d", len(result.Routes))
 	}
 }
+
+func TestAnalyze_LoryIgnoreDirectivesAndFile(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "lorikeet-ignore-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// File with lory:ignore
+	ignoredLineCode := `// lory:ignore CWE-89
+const sql = "SELECT * FROM users WHERE name = " + req.query.name;`
+	if err := os.WriteFile(filepath.Join(tempDir, "ignored_line.js"), []byte(ignoredLineCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// File with lory-ignore-file
+	ignoredFileCode := `// lory-ignore-file
+const sql = "SELECT * FROM secrets WHERE id = " + req.body.id;`
+	if err := os.WriteFile(filepath.Join(tempDir, "ignored_file.js"), []byte(ignoredFileCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// File covered by .loryignore
+	os.MkdirAll(filepath.Join(tempDir, "vendor"), 0755)
+	vendorCode := `const sql = "SELECT * FROM vendor WHERE id = " + req.query.id;`
+	if err := os.WriteFile(filepath.Join(tempDir, "vendor", "lib.js"), []byte(vendorCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .loryignore
+	if err := os.WriteFile(filepath.Join(tempDir, ".loryignore"), []byte("vendor/\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := analyzer.AnalyzeRepository(tempDir)
+	if err != nil {
+		t.Fatalf("AnalyzeRepository failed: %v", err)
+	}
+
+	if len(result.WhiteBoxPoCs) != 0 {
+		t.Errorf("expected 0 findings due to suppressions and .loryignore, got %d", len(result.WhiteBoxPoCs))
+	}
+}

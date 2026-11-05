@@ -46,19 +46,33 @@ Accept: text/event-stream
 3. As vulnerabilities are synthesized, findings are pushed down the SSE connection as `data: {...}` events.
 4. The CLI TUI immediately renders each finding in real time with an animated spinner, preventing long wait times on large files.
 
-### Finding Schema
+### Finding Schema (`--format json`)
 ```json
 {
-  "id": "LOR-SQLI-001",
-  "title": "SQL Injection in User Query Handler",
-  "severity": "CRITICAL",
-  "cwe": "CWE-89",
-  "confidence": 0.98,
-  "filename": "src/db/users.py",
-  "line": 42,
-  "code_snippet": "query = f\"SELECT * FROM users WHERE email = '{user_input}'\"",
-  "recommendation": "Use parameterized queries with prepared statements.",
-  "patch": "query = \"SELECT * FROM users WHERE email = %s\"\ncursor.execute(query, (user_input,))"
+  "total_findings": 1,
+  "findings": [
+    {
+      "id": "LOR-0001",
+      "file_path": "src/db/users.py",
+      "line": 42,
+      "end_line": 42,
+      "severity": "critical",
+      "title": "SQL Injection in User Query Handler",
+      "detail": "Vulnerability sink detected: SQL Injection with unparameterized input.",
+      "confidence": 0.98,
+      "cwe": "CWE-89",
+      "fix": "query = \"SELECT * FROM users WHERE email = %s\"\ncursor.execute(query, (user_input,))",
+      "fix_note": "Use parameterized queries with prepared statements."
+    }
+  ],
+  "results": [
+    {
+      "FilePath": "src/db/users.py",
+      "Language": "python",
+      "Lines": 55,
+      "Findings": [...]
+    }
+  ]
 }
 ```
 

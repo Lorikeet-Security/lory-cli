@@ -49,8 +49,8 @@ var extToLanguage = map[string]string{
 }
 
 var (
-	ignoreFileRegex = regexp.MustCompile(`(?i)(?://|#|/\*|<!--)\s*lory-ignore-file`)
-	ignoreLineRegex = regexp.MustCompile(`(?i)(?://|#|/\*|<!--)\s*(?:lory-ignore|lory-ignore-next-line)`)
+	ignoreFileRegex = regexp.MustCompile(`(?i)(?://|#|/\*|<!--)\s*lory[-:]ignore-file`)
+	ignoreLineRegex = regexp.MustCompile(`(?i)(?://|#|/\*|<!--)\s*(?:lory[-:](?:ignore|suppress)(?:-(?:next-line|start|end))?)`)
 )
 
 // DetectLanguage returns the Lory language identifier for a file path
