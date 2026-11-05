@@ -68,4 +68,10 @@ func TestRunScan_LocalFileWithFlags(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RunScan failed: %v", err)
 	}
+
+	// Positional target preceding flags should parse flags correctly
+	err = RunScan([]string{testFile, "--format", "json"})
+	if err != nil {
+		t.Fatalf("RunScan with target preceding --format failed: %v", err)
+	}
 }
