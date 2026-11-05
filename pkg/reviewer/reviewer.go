@@ -164,8 +164,20 @@ func ReviewPath(ctx context.Context, targetPath string, cfg types.ReviewConfig, 
 	}
 
 	results := make([]FileReviewResult, 0)
-	err = filepath.Walk(targetPath, func(path string, info os.FileInfo, walkErr error) error {
+	absTarget, _ := filepath.Abs(targetPath)
+	customIgnore := analyzer.LoadIgnorePatterns(absTarget)
+
+	err = filepath.Walk(absTarget, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
+			return nil
+		}
+
+		relPath, _ := filepath.Rel(absTarget, path)
+		relSlash := filepath.ToSlash(relPath)
+		if analyzer.IsPathIgnored(relSlash, info.IsDir(), customIgnore) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 

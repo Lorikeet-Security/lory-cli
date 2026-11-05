@@ -135,8 +135,14 @@ const sql = "SELECT * FROM secrets WHERE id = " + req.body.id;`
 		t.Fatal(err)
 	}
 
-	// Create .loryignore
-	if err := os.WriteFile(filepath.Join(tempDir, ".loryignore"), []byte("vendor/\n"), 0644); err != nil {
+	// File covered by wildcard in .loryignore
+	minCode := `const sql = "SELECT * FROM minified WHERE id = " + req.query.id;`
+	if err := os.WriteFile(filepath.Join(tempDir, "bundle.min.js"), []byte(minCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .loryignore with directory and wildcard patterns
+	if err := os.WriteFile(filepath.Join(tempDir, ".loryignore"), []byte("vendor/\n*.min.js\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 

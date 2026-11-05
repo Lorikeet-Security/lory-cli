@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -99,5 +100,42 @@ func IsLineIgnored(lines []string, lineNum int) bool {
 		return true
 	}
 
+	return false
+}
+
+// LoadIgnorePatterns loads ignore patterns from .loryignore in rootPath if present
+func LoadIgnorePatterns(rootPath string) []string {
+	var customIgnore []string
+	if ignoreBytes, err := os.ReadFile(filepath.Join(rootPath, ".loryignore")); err == nil {
+		for _, line := range strings.Split(string(ignoreBytes), "\n") {
+			line = strings.TrimSpace(line)
+			if line != "" && !strings.HasPrefix(line, "#") {
+				customIgnore = append(customIgnore, line)
+			}
+		}
+	}
+	return customIgnore
+}
+
+// IsPathIgnored checks if relSlash or its base matches any custom ignore pattern
+func IsPathIgnored(relSlash string, isDir bool, patterns []string) bool {
+	base := filepath.Base(relSlash)
+	for _, pat := range patterns {
+		cleanPat := strings.TrimRight(filepath.ToSlash(pat), "/")
+		if cleanPat == "" {
+			continue
+		}
+		// Direct path or parent directory match
+		if relSlash == cleanPat || strings.HasPrefix(relSlash, cleanPat+"/") || strings.Contains(relSlash, "/"+cleanPat+"/") {
+			return true
+		}
+		// Glob / wildcard match (e.g. *.min.js, *.test.js)
+		if matched, _ := filepath.Match(cleanPat, base); matched {
+			return true
+		}
+		if matched, _ := filepath.Match(cleanPat, relSlash); matched {
+			return true
+		}
+	}
 	return false
 }

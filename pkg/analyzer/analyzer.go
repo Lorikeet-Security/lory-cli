@@ -99,15 +99,7 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 		".venv":        true,
 	}
 
-	var customIgnore []string
-	if ignoreBytes, err := os.ReadFile(filepath.Join(absPath, ".loryignore")); err == nil {
-		for _, line := range strings.Split(string(ignoreBytes), "\n") {
-			line = strings.TrimSpace(line)
-			if line != "" && !strings.HasPrefix(line, "#") {
-				customIgnore = append(customIgnore, line)
-			}
-		}
-	}
+	customIgnore := LoadIgnorePatterns(absPath)
 
 	err = filepath.Walk(absPath, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
@@ -116,14 +108,11 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 
 		relPath, _ := filepath.Rel(absPath, path)
 		relSlash := filepath.ToSlash(relPath)
-		for _, pat := range customIgnore {
-			cleanPat := strings.TrimRight(filepath.ToSlash(pat), "/")
-			if relSlash == cleanPat || strings.HasPrefix(relSlash, cleanPat+"/") || strings.Contains(relSlash, "/"+cleanPat+"/") {
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
+		if IsPathIgnored(relSlash, info.IsDir(), customIgnore) {
+			if info.IsDir() {
+				return filepath.SkipDir
 			}
+			return nil
 		}
 
 		if info.IsDir() {

@@ -59,7 +59,7 @@ Accept: text/event-stream
       "severity": "critical",
       "title": "SQL Injection in User Query Handler",
       "detail": "Vulnerability sink detected: SQL Injection with unparameterized input.",
-      "confidence": 0.98,
+      "confidence": "high",
       "cwe": "CWE-89",
       "fix": "query = \"SELECT * FROM users WHERE email = %s\"\ncursor.execute(query, (user_input,))",
       "fix_note": "Use parameterized queries with prepared statements."

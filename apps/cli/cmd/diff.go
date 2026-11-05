@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/lorikeetsecurity/lory/pkg/analyzer"
@@ -62,11 +63,15 @@ func RunDiff(args []string) error {
 		return fmt.Errorf("git diff failed: %w", err)
 	}
 
+	customIgnore := analyzer.LoadIgnorePatterns(".")
 	files := strings.Split(strings.TrimSpace(string(out)), "\n")
 	validFiles := make([]string, 0)
 	for _, f := range files {
 		f = strings.TrimSpace(f)
 		if f != "" && analyzer.DetectLanguage(f) != "" {
+			if analyzer.IsPathIgnored(filepath.ToSlash(f), false, customIgnore) {
+				continue
+			}
 			// Skip deleted files that no longer exist on disk
 			if _, err := os.Stat(f); err == nil {
 				validFiles = append(validFiles, f)
