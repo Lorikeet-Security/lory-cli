@@ -82,7 +82,7 @@ func FetchUserInfo(ctx context.Context, baseDomain, accessToken string) (*UserIn
 		}
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req.Header.Set("Accept", "application/json")
-		req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.1.1")
+		req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.2.0")
 
 		resp, err := client.Do(req)
 		if err != nil {
@@ -301,7 +301,7 @@ func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectUR
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.1.1")
+	req.Header.Set("User-Agent", "Lorikeet-Lory-CLI/1.2.0")
 
 	client := &http.Client{Timeout: 15 * time.Second}
 	resp, err := client.Do(req)

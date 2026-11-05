@@ -6,7 +6,7 @@
 | |      / _ \ |  _ \ \ \ / /   LORIKEET SECURITY
 | |     | | | || |_) | \ V /    AI Security Analyst & PTaaS Platform
 | |___  | |_| ||  _ <   | |     Lory Review & Web Security Scanner
-|_____|  \___/ |_| \_\  |_|     v1.1.1
+|_____|  \___/ |_| \_\  |_|     v1.2.0
   </pre>
   <p align="center">
     <strong>Autonomous, hybrid-intelligence security testing and AI code review directly from your terminal.</strong>
@@ -128,7 +128,7 @@ sudo make install
 
 ```bash
 lory version
-# Output: lory version 1.1.1 (Lorikeet Security AI Reviewer)
+# Output: lory version 1.2.0 (Lorikeet Security AI Reviewer)
 ```
 
 ---

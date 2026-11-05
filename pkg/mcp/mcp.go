@@ -104,7 +104,7 @@ func handleRequest(req *JSONRPCRequest) {
 			"protocolVersion": "2024-11-05",
 			"serverInfo": map[string]string{
 				"name":    "lorikeet-lory-mcp",
-				"version": "1.1.1",
+				"version": "1.2.0",
 			},
 			"capabilities": map[string]interface{}{
 				"tools": map[string]bool{
