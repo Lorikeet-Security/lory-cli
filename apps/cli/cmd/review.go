@@ -57,8 +57,8 @@ func RunReview(args []string) error {
 	ctx := context.Background()
 	totalFindings := 0
 	findingIdx := 1
-	var allFindings []types.LoryFinding
-	var allResults []reviewer.FileReviewResult
+	allFindings := make([]types.LoryFinding, 0)
+	allResults := make([]reviewer.FileReviewResult, 0)
 
 	if *formatFlag == "table" {
 		fmt.Printf("%sLory AI Code Review%s\n", tui.ColorBold, tui.ColorReset)

@@ -51,7 +51,31 @@ func RunScan(args []string) error {
 	baseURLFlag := fs.String("base-url", client.DefaultBaseURL, "Base URL of Lorikeet Security platform")
 	formatFlag := fs.String("format", "table", "Output format: table, json")
 	fixFlag := fs.Bool("fix", false, "Apply quick fixes if scanning code files")
-	if err := fs.Parse(args); err != nil {
+
+	// Partition arguments so flags are parsed even if target precedes them (e.g. `lory scan <target> [flags]`)
+	var flagArgs, posArgs []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if strings.HasPrefix(arg, "-") {
+			flagArgs = append(flagArgs, arg)
+			if !strings.Contains(arg, "=") && i+1 < len(args) && !strings.HasPrefix(args[i+1], "-") {
+				flagName := strings.TrimLeft(arg, "-")
+				switch flagName {
+				case "base-url", "format":
+					i++
+					flagArgs = append(flagArgs, args[i])
+				}
+			}
+		} else {
+			posArgs = append(posArgs, arg)
+		}
+	}
+	reordered := append(flagArgs, posArgs...)
+
+	if err := fs.Parse(reordered); err != nil {
+		if err == flag.ErrHelp {
+			return nil
+		}
 		return err
 	}
 
