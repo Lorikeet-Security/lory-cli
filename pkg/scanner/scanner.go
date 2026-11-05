@@ -37,34 +37,37 @@ func RunScan(cfg types.ScanConfig, onProgress ProgressCallback) ([]types.Vulnera
 		findingID := fmt.Sprintf("LOR-%04d", findingCounter)
 		findingCounter++
 
-		targetEndpoint := "/api/v1/query"
-		method := "POST"
-		matchedRoute := false
+		targetEndpoint := "N/A"
+		method := "N/A"
+		closestLine := -1
 
-		// Correlate finding with the route declared in the same source file
+		// Correlate finding with the closest enclosing route declared in the same source file
 		for _, r := range analysis.Routes {
-			if r.FilePath == wb.FilePath {
-				targetEndpoint = r.Path
-				method = r.Method
-				matchedRoute = true
-				if r.LineNumber <= wb.LineNumber {
-					break
+			if r.FilePath == wb.FilePath && r.LineNumber <= wb.LineNumber {
+				if r.LineNumber > closestLine {
+					closestLine = r.LineNumber
+					targetEndpoint = r.Path
+					method = r.Method
 				}
 			}
 		}
 
-		if !matchedRoute && len(analysis.Routes) > 0 {
-			targetEndpoint = analysis.Routes[0].Path
-			method = analysis.Routes[0].Method
+		var pocCurl string
+		if targetEndpoint != "N/A" {
+			pocCurl = fmt.Sprintf("curl -X %s '%s%s' -d '{\"input\": \"' OR '1'='1\"}'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
+		} else {
+			pocCurl = fmt.Sprintf("# Static analysis sink in %s:%d (no enclosing HTTP route)", wb.FilePath, wb.LineNumber)
 		}
-
-		pocCurl := fmt.Sprintf("curl -X %s '%s%s' -d '{\"input\": \"' OR '1'='1\"}'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
 		pocResponse := `{"error":"syntax error at or near \"1\": SQLSTATE[42601]","records":[{"id":1,"role":"superadmin"}]}`
 		cvss := 9.8
 		remediation := "Use prepared statements with parameterized placeholders instead of string formatting or concatenation."
 
 		if wb.CWE == "CWE-78" {
-			pocCurl = fmt.Sprintf("curl -X %s '%s%s?cmd=id;whoami'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
+			if targetEndpoint != "N/A" {
+				pocCurl = fmt.Sprintf("curl -X %s '%s%s?cmd=id;whoami'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
+			} else {
+				pocCurl = fmt.Sprintf("# Command injection sink in %s:%d (no enclosing HTTP route)", wb.FilePath, wb.LineNumber)
+			}
 			pocResponse = `uid=0(root) gid=0(root) groups=0(root)`
 			cvss = 9.9
 			remediation = "Avoid invoking system shells directly. Validate arguments against an explicit whitelist and invoke fixed binary paths without shell interpolation."
@@ -74,7 +77,11 @@ func RunScan(cfg types.ScanConfig, onProgress ProgressCallback) ([]types.Vulnera
 			cvss = 8.6
 			remediation = "Remove hardcoded secret credentials from repository. Store secrets in environment variables or a managed secret store (Vault/KMS)."
 		} else if wb.CWE == "CWE-918" {
-			pocCurl = fmt.Sprintf("curl -X %s '%s%s' -d '{\"url\":\"http://169.254.169.254/latest/meta-data/iam/\"}'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
+			if targetEndpoint != "N/A" {
+				pocCurl = fmt.Sprintf("curl -X %s '%s%s' -d '{\"url\":\"http://169.254.169.254/latest/meta-data/iam/\"}'", method, strings.TrimRight(cfg.TargetURL, "/"), targetEndpoint)
+			} else {
+				pocCurl = fmt.Sprintf("# SSRF sink in %s:%d (no enclosing HTTP route)", wb.FilePath, wb.LineNumber)
+			}
 			pocResponse = `HTTP/1.1 200 OK\n{"security-credentials":{"role-name":"LorikeetProductionRole"}}`
 			cvss = 8.8
 			remediation = "Validate outgoing URLs against a strict domain whitelist and block loopback, RFC1918 private IPs, and cloud metadata addresses (169.254.169.254)."
