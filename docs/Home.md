@@ -99,7 +99,7 @@ COMMANDS:
   diff [git-args...]       Review only changed files in current git diff
   chat                     Start interactive security REPL session
   retest <finding-id>      1-click replay test to verify if a patch resolved a finding
-  findings [list]          Stream active, verified vulnerabilities and triage state
+  findings                 Stream active, verified vulnerabilities and triage state
   export                   Generate SARIF 2.1.0 or SOC 2 / ISO 27001 evidence packs
   badge [target]           Generate 'Secured by Lorikeet Security' badge for footers
   token [set|clear|show]   Manage Lorikeet/Lory access token for higher rate limits
@@ -112,8 +112,11 @@ FLAGS:
   --port <port>            Local callback port for Talon SSO flow (default: 54321)
   --fix                    Automatically apply suggested fixes to source files
   --stream                 Stream findings in real-time as they arrive (default: true)
+  --min-severity <level>   Minimum severity to report (low, medium, high, critical; default: low)
+  --max-lines <lines>      Maximum source file lines to analyze per file (default: 1500)
+  --cached, --staged       Review staged git index changes when running lory diff
   --base-url <url>         Lorikeet Security platform base URL (default: https://lorikeetsecurity.com)
   --token <token>          Lory access token (or set LORIKEET_TOKEN env var)
-  --format <table|json>    Output format (default: table)
-  --help, -h               Show help screen
+  --format <format>        Output format: table, json (review/diff/scan); sarif, json, soc2, pdf, badge (export)
+  --help, -h               Show this help screen
 ```

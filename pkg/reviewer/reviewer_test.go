@@ -53,3 +53,43 @@ const sql = "SELECT * FROM users WHERE name = " + req.query.name;
 		t.Errorf("expected more or equal findings with low minSeverity")
 	}
 }
+
+func TestReviewPath_LoryIgnore(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "lory-reviewer-ignore-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Subdir ignored via .loryignore
+	ignoredDir := filepath.Join(tempDir, "legacy")
+	os.MkdirAll(ignoredDir, 0755)
+	vulnCode := `const sql = "SELECT * FROM legacy WHERE id = " + req.query.id;`
+	if err := os.WriteFile(filepath.Join(ignoredDir, "old.js"), []byte(vulnCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Normal file
+	normalCode := `const port = 8080;`
+	if err := os.WriteFile(filepath.Join(tempDir, "server.js"), []byte(normalCode), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Write .loryignore
+	if err := os.WriteFile(filepath.Join(tempDir, ".loryignore"), []byte("legacy/\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	results, err := reviewer.ReviewPath(context.Background(), tempDir, types.ReviewConfig{
+		MinSeverity: types.SeverityLow,
+	}, nil, nil)
+	if err != nil {
+		t.Fatalf("ReviewPath failed: %v", err)
+	}
+
+	for _, res := range results {
+		if filepath.Base(filepath.Dir(res.FilePath)) == "legacy" {
+			t.Errorf("expected legacy/ directory to be skipped due to .loryignore, but reviewed %s", res.FilePath)
+		}
+	}
+}
