@@ -39,7 +39,7 @@ go install github.com/Lorikeet-Security/lory-cli@latest
 #### Verification
 ```bash
 lory version
-# Output: lory version 1.1.1 (Lorikeet Security AI Reviewer)
+# Output: lory version 1.2.0 (Lorikeet Security AI Reviewer)
 ```
 
 ---

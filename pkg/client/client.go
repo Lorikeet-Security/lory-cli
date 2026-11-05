@@ -19,7 +19,7 @@ const (
 	DefaultBaseURL   = "https://lorikeetsecurity.com"
 	ReviewEndpoint   = "/ptaas/ajax/lory-code-review.php"
 	WebScanEndpoint  = "/ptaas/tools/scan-api.php"
-	UserAgent        = "Lorikeet-Lory-CLI/1.1.1"
+	UserAgent        = "Lorikeet-Lory-CLI/1.2.0"
 )
 
 type FindingCallback func(finding types.LoryFinding)

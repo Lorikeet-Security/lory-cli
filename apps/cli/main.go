@@ -9,7 +9,7 @@ import (
 	"github.com/lorikeetsecurity/lory/pkg/tui"
 )
 
-const Version = "1.1.1"
+const Version = "1.2.0"
 
 func printHelp() {
 	tui.PrintBanner()
