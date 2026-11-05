@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -100,9 +99,31 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 		".venv":        true,
 	}
 
+	var customIgnore []string
+	if ignoreBytes, err := os.ReadFile(filepath.Join(absPath, ".loryignore")); err == nil {
+		for _, line := range strings.Split(string(ignoreBytes), "\n") {
+			line = strings.TrimSpace(line)
+			if line != "" && !strings.HasPrefix(line, "#") {
+				customIgnore = append(customIgnore, line)
+			}
+		}
+	}
+
 	err = filepath.Walk(absPath, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return nil
+		}
+
+		relPath, _ := filepath.Rel(absPath, path)
+		relSlash := filepath.ToSlash(relPath)
+		for _, pat := range customIgnore {
+			cleanPat := strings.TrimRight(filepath.ToSlash(pat), "/")
+			if relSlash == cleanPat || strings.HasPrefix(relSlash, cleanPat+"/") || strings.Contains(relSlash, "/"+cleanPat+"/") {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
 		}
 
 		if info.IsDir() {
@@ -117,19 +138,19 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 		}
 
 		result.TotalFiles++
-		relPath, _ := filepath.Rel(absPath, path)
 
-		file, err := os.Open(path)
+		fileBytes, err := os.ReadFile(path)
 		if err != nil {
 			return nil
 		}
-		defer file.Close()
+		content := string(fileBytes)
+		if IsFileIgnored(content) || IsTestFile(path) {
+			return nil
+		}
 
-		scanner := bufio.NewScanner(file)
-		lineNum := 0
-		for scanner.Scan() {
-			lineNum++
-			line := scanner.Text()
+		lines := strings.Split(content, "\n")
+		for lineIdx, line := range lines {
+			lineNum := lineIdx + 1
 
 			// Route extraction: Express / Node
 			if matches := expressRouteRegex.FindStringSubmatch(line); len(matches) > 2 {
@@ -188,8 +209,8 @@ func AnalyzeRepository(repoPath string) (*AnalysisResult, error) {
 				}
 			}
 
-			// Vulnerability Sink detection (skip regex definitions and test files)
-			if isRegexDefinition(line) || IsTestFile(path) {
+			// Vulnerability Sink detection (skip regex definitions, test files, and ignored lines)
+			if isRegexDefinition(line) || IsTestFile(path) || IsLineIgnored(lines, lineNum) {
 				continue
 			}
 

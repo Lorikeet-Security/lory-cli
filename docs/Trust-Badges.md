@@ -54,8 +54,8 @@ Every official Lorikeet Security badge features:
 
 ### Option A: HTML Footer Embed
 ```html
-<a href="https://lorikeetsecurity.com/verify?domain=acme.com" target="_blank" rel="noopener noreferrer">
-  <img src="https://lorikeetsecurity.com/assets/badges/lorikeet-secured-dark.svg"
+<a href="https://lorikeetsecurity.com/trust-center?target=acme.com" target="_blank" rel="noopener noreferrer">
+  <img src="https://lorikeetsecurity.com/badges/lorikeet-secured-dark.svg"
        alt="Secured by Lorikeet Security"
        width="240"
        height="44" />
@@ -64,7 +64,7 @@ Every official Lorikeet Security badge features:
 
 ### Option B: Markdown (GitHub README)
 ```markdown
-[![Secured by Lorikeet Security](https://lorikeetsecurity.com/assets/badges/lorikeet-secured-shield.svg)](https://lorikeetsecurity.com/verify?domain=acme.com)
+[![Secured by Lorikeet Security](https://lorikeetsecurity.com/badges/lorikeet-secured-shield.svg)](https://lorikeetsecurity.com/trust-center?target=acme.com)
 ```
 
 ### Option C: Inline SVG
