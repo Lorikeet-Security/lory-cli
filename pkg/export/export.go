@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 // GenerateSARIF produces standard OASIS SARIF 2.1.0 JSON format

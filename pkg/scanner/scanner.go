@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/analyzer"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/analyzer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 type ProgressCallback func(stage string, detail string, finding *types.VulnerabilityFinding)

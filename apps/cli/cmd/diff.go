@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/analyzer"
-	"github.com/lorikeetsecurity/lory/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/analyzer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
 )
 
 func RunDiff(args []string) error {

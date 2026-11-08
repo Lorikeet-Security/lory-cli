@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "go build -o lory apps/cli/main.go",
+    "build": "go build -o lory .",
     "test": "go test ./..."
   }
 }

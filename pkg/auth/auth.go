@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net"
 	"net/http"
@@ -19,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 const (
@@ -66,11 +67,167 @@ type UserInfoResponse struct {
 	Subject     string `json:"subject"`
 }
 
+const callbackHTMLTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lorikeet Security — Authentication Successful</title>
+  <style>
+    :root {
+      --primary: #ba5663;
+      --primary-light: #db6574;
+      --bg: #0a1628;
+      --card: #142b49;
+      --card-pill: #1a375d;
+      --text: #ffffff;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(ellipse at top, rgba(186, 86, 99, 0.12), transparent 60%), var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid rgba(82, 82, 82, 0.6);
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      padding: 36px 32px 32px;
+      text-align: center;
+    }
+    .brand-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+    .brand-subtitle {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--primary-light);
+      margin-left: 5px;
+    }
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .user-pill {
+      display: inline-block;
+      background: var(--card-pill);
+      border: 1px solid rgba(82, 82, 82, 0.4);
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      margin-bottom: 18px;
+      word-break: break-all;
+    }
+    .user-pill strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    p {
+      margin: 0 0 8px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 22px;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      color: #ffffff;
+      border-radius: 9999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-top: 24px;
+      border: 1px solid var(--primary-light);
+      box-shadow: 0 4px 14px rgba(186, 86, 99, 0.4);
+      letter-spacing: 0.02em;
+    }
+    .badge svg {
+      width: 14px;
+      height: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand-header">
+      <svg width="34" height="34" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lorikeet Security Logo">
+        <defs>
+          <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#db6574" />
+            <stop offset="100%" stop-color="#ba5663" />
+          </linearGradient>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#ba5663" flood-opacity="0.35"/>
+          </filter>
+        </defs>
+        <path d="M64 8 L112 28 L112 60 C112 90 90 112 64 120 C38 112 16 90 16 60 L16 28 Z"
+              fill="url(#shieldGrad)" stroke="#142b49" stroke-width="2" filter="url(#glow)"/>
+        <path d="M64 18 L102 34 L102 58 C102 84 84 102 64 110 C44 102 26 84 26 58 L26 34 Z"
+              fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+        <g transform="translate(64,62) scale(0.72)">
+          <ellipse cx="0" cy="8" rx="18" ry="24" fill="#142b49"/>
+          <circle cx="0" cy="-22" r="14" fill="#142b49"/>
+          <path d="M14 -24 L28 -20 L14 -18 Z" fill="#ffffff" opacity="0.95"/>
+          <circle cx="6" cy="-24" r="3" fill="#ffffff"/>
+          <circle cx="7" cy="-24" r="1.5" fill="#142b49"/>
+          <path d="M-6 -4 Q-30 4 -24 28 L-2 20 Z" fill="rgba(255,255,255,0.2)"/>
+          <path d="M-8 28 L-14 44 L0 36 L14 44 L8 28" fill="#142b49"/>
+        </g>
+      </svg>
+      <div>
+        <span class="brand-title">Lorikeet</span>
+        <span class="brand-subtitle">SECURITY</span>
+      </div>
+    </div>
+    <h1>Authentication Successful</h1>
+    <div class="user-pill">Logged in as <strong>{{USER_DISPLAY}}</strong></div>
+    <p>Your terminal session for <strong>lory</strong> is now securely authenticated with Talon.</p>
+    <p>You can safely close this browser window and return to your terminal.</p>
+    <div class="badge">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Lorikeet Security Talon Connected
+    </div>
+  </div>
+</body>
+</html>`
+
+func renderCallbackHTML(userDisplay string) string {
+	return strings.Replace(callbackHTMLTemplate, "{{USER_DISPLAY}}", html.EscapeString(userDisplay), 1)
+}
+
 // FetchUserInfo queries platform userinfo / whoami endpoints
 func FetchUserInfo(ctx context.Context, baseDomain, accessToken string) (*UserInfoResponse, error) {
 	endpoints := []string{
-		"/talon/api/whoami",
 		"/talon/mcp/oauth/userinfo",
+		"/talon/api/whoami",
 	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -96,6 +253,12 @@ func FetchUserInfo(ctx context.Context, baseDomain, accessToken string) (*UserIn
 			if err := json.Unmarshal(body, &info); err == nil {
 				if info.Email == "" && info.UserEmail != "" {
 					info.Email = info.UserEmail
+				}
+				if info.Email == "" && strings.Contains(info.Sub, "@") {
+					info.Email = info.Sub
+				}
+				if info.Email == "" && strings.Contains(info.Subject, "@") {
+					info.Email = info.Subject
 				}
 				if info.CompanyName == "" && info.OrgName != "" {
 					info.CompanyName = info.OrgName
@@ -323,6 +486,17 @@ func ExchangeOAuthCode(ctx context.Context, tokenURL, clientID, code, redirectUR
 	return &tokenResp, nil
 }
 
+type authCallbackResult struct {
+	rawAuth     string
+	tokenResp   *OAuthTokenResponse
+	exchangeErr error
+}
+
+// LoginOAuth is an alias for LoginSSO providing interactive browser-based Talon OAuth 2.1 authentication
+func LoginOAuth(preferredPort int, clientID, authURLBase, tokenURLBase string) (*types.AuthCredentials, error) {
+	return LoginSSO(preferredPort, clientID, authURLBase, tokenURLBase)
+}
+
 // LoginSSO runs the local loopback OAuth callback server and opens the browser
 func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*types.AuthCredentials, error) {
 	if clientID == "" {
@@ -338,7 +512,7 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 	state := GenerateRandomHex(16)
 	codeVerifier, codeChallenge := GeneratePKCE()
 
-	codeChan := make(chan string, 1)
+	resultChan := make(chan authCallbackResult, 1)
 	errChan := make(chan error, 1)
 
 	// Try default port 54321, fallback to ephemeral port
@@ -358,6 +532,13 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 		if incomingState != "" && incomingState != state {
 			http.Error(w, "Invalid state parameter (CSRF detected)", http.StatusBadRequest)
 			errChan <- fmt.Errorf("state mismatch")
+			return
+		}
+
+		if errParam := r.URL.Query().Get("error"); errParam != "" {
+			errDesc := r.URL.Query().Get("error_description")
+			http.Error(w, fmt.Sprintf("Authorization error: %s (%s)", errParam, errDesc), http.StatusBadRequest)
+			errChan <- fmt.Errorf("authorization denied: %s", errParam)
 			return
 		}
 
@@ -382,143 +563,36 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 			return
 		}
 
+		var tokenResp *OAuthTokenResponse
+		var exchangeErr error
 		userDisplay := "Talon User"
+
 		if ssoToken != "" {
 			if payload, err := DecodeSSOToken(ssoToken); err == nil && payload.Email != "" {
 				userDisplay = payload.Email
 			}
+		} else if code != "" {
+			// Exchange authorization code immediately using PKCE verifier
+			exchCtx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+			tokenResp, exchangeErr = ExchangeOAuthCode(exchCtx, tokenURLBase, clientID, code, redirectURI, codeVerifier)
+			cancel()
+			if exchangeErr == nil && tokenResp != nil {
+				if tokenResp.UserEmail != "" {
+					userDisplay = tokenResp.UserEmail
+				} else if tokenResp.Email != "" {
+					userDisplay = tokenResp.Email
+				}
+			}
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Lorikeet Talon Authentication</title>
-  <style>
-    :root {
-      --rose-primary: #ba5663;
-      --navy-deep: #0a1628;
-      --navy-card: #142b49;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: #0a1628;
-      color: #f8fafc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .card {
-      background: #142b49;
-      padding: 2.75rem 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
-      text-align: center;
-      max-width: 440px;
-      width: 90%%;
-      border: 1px solid #1a375d;
-    }
-    .brand-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.75rem;
-    }
-    .brand-logo {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(10, 22, 40, 0.75);
-      padding: 8px 18px;
-      border-radius: 9999px;
-      border: 1px solid #1a375d;
-    }
-    .brand-name {
-      color: #ffffff;
-      font-weight: 800;
-      font-size: 0.88rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    h1 {
-      margin: 0 0 0.75rem;
-      color: #ffffff;
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .user-pill {
-      display: inline-block;
-      margin-bottom: 0.75rem;
-      color: #cbd5e1;
-      font-size: 0.95rem;
-    }
-    .user-pill strong {
-      color: #f1f5f9;
-    }
-    p {
-      color: #94a3b8;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      margin: 0.5rem 0;
-    }
-    .badge {
-      display: inline-block;
-      padding: 8px 20px;
-      background: #ba5663;
-      color: #ffffff;
-      border-radius: 9999px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-top: 1.5rem;
-      border: 1px solid #db6574;
-      box-shadow: 0 4px 14px rgba(186, 86, 99, 0.4);
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="brand-bar">
-      <div class="brand-logo">
-        <svg width="24" height="26" viewBox="0 0 28 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="shieldNavyGrad" x1="0" y1="0" x2="28" y2="32" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0a1628"/>
-              <stop offset="1" stop-color="#142b49"/>
-            </linearGradient>
-            <linearGradient id="clawCrimsonGrad" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#ba5663"/>
-              <stop offset="1" stop-color="#db6574"/>
-            </linearGradient>
-          </defs>
-          <!-- Dual-Tone Shield Base -->
-          <path d="M14 1.5L2 6.5V15C2 22.5 7.1 29.1 14 31C20.9 29.1 26 22.5 26 15V6.5L14 1.5Z" fill="url(#shieldNavyGrad)" stroke="#1a375d" stroke-width="1.2"/>
-          <!-- Dual-Tone Split (Right Half Shading) -->
-          <path d="M14 1.5V31C20.9 29.1 26 22.5 26 15V6.5L14 1.5Z" fill="#ba5663" fill-opacity="0.2"/>
-          <!-- Inner Crimson Accent Shield -->
-          <path d="M14 4L4.5 8V14.5C4.5 20.5 8.5 25.8 14 27.5C19.5 25.8 23.5 20.5 23.5 14.5V8L14 4Z" fill="none" stroke="url(#clawCrimsonGrad)" stroke-width="0.9" stroke-opacity="0.75"/>
-          <!-- Talon Claws Mark -->
-          <path d="M9.5 9.5C10.5 12.5 10.8 15 9.8 17.5" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M14 7.5C15.2 11.5 15.2 15.5 14 19.5" stroke="#ba5663" stroke-width="2" stroke-linecap="round"/>
-          <path d="M18.5 9.5C17.5 12.5 17.2 15 18.2 17.5" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M12.5 20.5L14 22.5L15.5 20.5" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="brand-name">LORIKEET SECURITY</span>
-      </div>
-    </div>
-    <h1>Authentication Successful</h1>
-    <div class="user-pill">Logged in as <strong>%s</strong></div>
-    <p>Your terminal session for <strong>lory</strong> is now securely authenticated with Talon.</p>
-    <p>You can close this tab and return to your terminal.</p>
-    <div class="badge">Lorikeet Security Talon Connected</div>
-  </div>
-</body>
-</html>
-`, userDisplay)
-		codeChan <- rawAuth
+		_, _ = w.Write([]byte(renderCallbackHTML(userDisplay)))
+
+		resultChan <- authCallbackResult{
+			rawAuth:     rawAuth,
+			tokenResp:   tokenResp,
+			exchangeErr: exchangeErr,
+		}
 	})
 
 	server := &http.Server{Handler: mux}
@@ -547,10 +621,10 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 	}
 
 	// Wait for callback or timeout (2 minutes)
-	var authCodeOrToken string
+	var callbackRes authCallbackResult
 	select {
-	case result := <-codeChan:
-		authCodeOrToken = result
+	case res := <-resultChan:
+		callbackRes = res
 	case err := <-errChan:
 		_ = server.Shutdown(context.Background())
 		return nil, fmt.Errorf("SSO authorization failed: %w", err)
@@ -565,18 +639,42 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 	orgName := ""
 	orgID := ""
 	authMethod := "talon-oauth"
-	accessToken := authCodeOrToken
+	accessToken := callbackRes.rawAuth
 	refreshToken := fmt.Sprintf("talon_refresh_%s", GenerateRandomHex(32))
 
-	// Attempt token exchange with token endpoint using authorization code and PKCE verifier
-	tokenResp, exchangeErr := ExchangeOAuthCode(context.Background(), tokenURLBase, clientID, authCodeOrToken, redirectURI, codeVerifier)
-	if exchangeErr == nil && tokenResp != nil && tokenResp.AccessToken != "" {
+	tokenResp := callbackRes.tokenResp
+	// If exchange wasn't completed in HTTP handler, attempt it now
+	if tokenResp == nil && callbackRes.rawAuth != "" {
+		if payload, err := DecodeSSOToken(callbackRes.rawAuth); err == nil {
+			if payload.Email != "" {
+				userEmail = payload.Email
+			}
+			if payload.CompanyID != "" {
+				orgID = payload.CompanyID
+				orgName = fmt.Sprintf("Lorikeet Org (%s)", payload.CompanyID)
+			}
+			if payload.Provider != "" {
+				authMethod = fmt.Sprintf("sso-%s", payload.Provider)
+			}
+		} else {
+			// Exchange authorization code with token endpoint
+			var err error
+			tokenResp, err = ExchangeOAuthCode(context.Background(), tokenURLBase, clientID, callbackRes.rawAuth, redirectURI, codeVerifier)
+			if err != nil {
+				return nil, fmt.Errorf("OAuth token exchange failed: %w", err)
+			}
+		}
+	} else if callbackRes.exchangeErr != nil {
+		return nil, fmt.Errorf("OAuth token exchange failed: %w", callbackRes.exchangeErr)
+	}
+
+	// 1. Parse token response JSON for user_email, email, company_name, org_name, company_id
+	if tokenResp != nil {
 		accessToken = tokenResp.AccessToken
 		if tokenResp.RefreshToken != "" {
 			refreshToken = tokenResp.RefreshToken
 		}
 
-		// 1. Check if tokenResp contains user_email, company_name, company_id
 		if tokenResp.UserEmail != "" {
 			userEmail = tokenResp.UserEmail
 		} else if tokenResp.Email != "" {
@@ -592,40 +690,40 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 		} else if tokenResp.OrgID != "" {
 			orgID = tokenResp.OrgID
 		}
-	} else if payload, err := DecodeSSOToken(authCodeOrToken); err == nil {
-		// If returned auth was an sso_token
-		if payload.Email != "" {
-			userEmail = payload.Email
-		}
-		if payload.CompanyID != "" {
-			orgID = payload.CompanyID
-			orgName = fmt.Sprintf("Lorikeet Org (%s)", payload.CompanyID)
-		}
-		if payload.Provider != "" {
-			authMethod = fmt.Sprintf("sso-%s", payload.Provider)
-		}
 	}
 
-	// 2. If user_email or orgName is not present, query platform /talon/api/whoami or /talon/mcp/oauth/userinfo
+	// 2. If email is empty, call FetchUserInfo against https://lorikeetsecurity.com/talon/mcp/oauth/userinfo with the Bearer token
 	if userEmail == "" || orgName == "" {
 		baseDomain := "https://lorikeetsecurity.com"
 		if u, err := url.Parse(tokenURLBase); err == nil && u.Host != "" {
 			baseDomain = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
 		}
 		if uinfo, err := FetchUserInfo(context.Background(), baseDomain, accessToken); err == nil && uinfo != nil {
-			if userEmail == "" && uinfo.Email != "" {
-				userEmail = uinfo.Email
+			if userEmail == "" {
+				if uinfo.Email != "" {
+					userEmail = uinfo.Email
+				} else if uinfo.UserEmail != "" {
+					userEmail = uinfo.UserEmail
+				}
 			}
-			if orgName == "" && uinfo.CompanyName != "" {
-				orgName = uinfo.CompanyName
+			if orgName == "" {
+				if uinfo.CompanyName != "" {
+					orgName = uinfo.CompanyName
+				} else if uinfo.OrgName != "" {
+					orgName = uinfo.OrgName
+				}
 			}
-			if orgID == "" && uinfo.CompanyID != "" {
-				orgID = uinfo.CompanyID
+			if orgID == "" {
+				if uinfo.CompanyID != "" {
+					orgID = uinfo.CompanyID
+				} else if uinfo.OrgID != "" {
+					orgID = uinfo.OrgID
+				}
 			}
 		}
 	}
 
-	// 3. If still empty, check JWT claims in accessToken
+	// 3. If email is still empty, parse claims from access_token if it's a JWT
 	if userEmail == "" || orgName == "" {
 		if claims := parseJWTClaims(accessToken); claims != nil {
 			if userEmail == "" {
@@ -633,12 +731,8 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 					userEmail = em
 				} else if em, ok := claims["user_email"].(string); ok && em != "" {
 					userEmail = em
-				} else if sub, ok := claims["sub"].(string); ok && sub != "" {
-					if strings.Contains(sub, "@") {
-						userEmail = sub
-					} else {
-						userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", sub)
-					}
+				} else if sub, ok := claims["sub"].(string); ok && strings.Contains(sub, "@") {
+					userEmail = sub
 				}
 			}
 			if orgName == "" {
@@ -658,26 +752,26 @@ func LoginSSO(preferredPort int, clientID, authURLBase, tokenURLBase string) (*t
 		}
 	}
 
-	// 4. Default to authenticated subject if still empty - never fake developer@lorikeetsecurity.com!
-	if userEmail == "" {
-		if tokenResp != nil && tokenResp.Sub != "" {
-			if strings.Contains(tokenResp.Sub, "@") {
-				userEmail = tokenResp.Sub
-			} else {
-				userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", tokenResp.Sub)
-			}
-		} else if tokenResp != nil && tokenResp.Subject != "" {
-			if strings.Contains(tokenResp.Subject, "@") {
-				userEmail = tokenResp.Subject
-			} else {
-				userEmail = fmt.Sprintf("%s@talon.lorikeetsecurity.com", tokenResp.Subject)
-			}
-		} else {
-			userEmail = "authenticated-user@lorikeetsecurity.com"
+	// Also check token subject claim if it contains email
+	if userEmail == "" && tokenResp != nil {
+		if strings.Contains(tokenResp.Sub, "@") {
+			userEmail = tokenResp.Sub
+		} else if strings.Contains(tokenResp.Subject, "@") {
+			userEmail = tokenResp.Subject
 		}
 	}
+
+	// 4. If user identity still cannot be confirmed, FAIL with an explicit error instead of substituting fake developer credentials!
+	if userEmail == "" {
+		return nil, fmt.Errorf("could not confirm authenticated user identity from Talon OAuth session: email claim missing")
+	}
+
 	if orgName == "" {
-		orgName = "Lorikeet Security"
+		if orgID != "" {
+			orgName = fmt.Sprintf("Lorikeet Org (%s)", orgID)
+		} else {
+			orgName = "Lorikeet Security"
+		}
 	}
 	if orgID == "" {
 		orgID = "org_talon_prod"

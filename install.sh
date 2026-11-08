@@ -34,7 +34,7 @@ elif command -v go >/dev/null 2>&1; then
   if [ ! -s "$TMP_FILE" ]; then
     TMP_DIR="$(mktemp -d)"
     git clone --depth 1 "https://github.com/${REPO}.git" "$TMP_DIR"
-    (cd "$TMP_DIR" && go build -o "$TMP_FILE" apps/cli/main.go)
+    (cd "$TMP_DIR" && go build -o "$TMP_FILE" .)
     rm -rf "$TMP_DIR"
   fi
   chmod +x "$TMP_FILE"

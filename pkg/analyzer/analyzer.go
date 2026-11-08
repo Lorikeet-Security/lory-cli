@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 var (

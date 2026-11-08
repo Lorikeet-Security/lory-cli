@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/analyzer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/analyzer"
 )
 
 func TestAnalyzeRepository(t *testing.T) {

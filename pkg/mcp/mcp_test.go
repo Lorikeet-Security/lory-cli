@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/mcp"
-	"github.com/lorikeetsecurity/lory/pkg/webscan"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/mcp"
+	"github.com/Lorikeet-Security/lory-cli/pkg/webscan"
 )
 
 func TestWebScan_AuthenticatedClientRetainsToken(t *testing.T) {

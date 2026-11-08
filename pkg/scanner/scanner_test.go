@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/scanner"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/scanner"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func TestRunScan_CleanRepoHasNoFindings(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
 )
 
 func RunAuth(args []string) error {

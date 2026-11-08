@@ -6,7 +6,7 @@ all: build
 
 build:
 	@echo "==> Building standalone lory CLI binary..."
-	CGO_ENABLED=0 go build -ldflags="-s -w" -o $(BINARY_NAME) apps/cli/main.go
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o $(BINARY_NAME) .
 	@echo "==> Binary built: ./$(BINARY_NAME)"
 
 install: build

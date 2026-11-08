@@ -1,3 +1,3 @@
-module github.com/lorikeetsecurity/lory
+module github.com/Lorikeet-Security/lory-cli
 
 go 1.22

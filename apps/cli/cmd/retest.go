@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lorikeetsecurity/lory/pkg/retest"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/retest"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func RunRetest(args []string) error {

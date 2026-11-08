@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 type RetestResult struct {

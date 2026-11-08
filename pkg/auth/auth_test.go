@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func TestDecodeSSOToken(t *testing.T) {
@@ -72,6 +72,32 @@ func TestOAuthTokenResponseParsing(t *testing.T) {
 	}
 }
 
+func TestOAuthTokenResponseParsing_AltFields(t *testing.T) {
+	jsonBlob := []byte(`{
+		"access_token": "talon_token_99999",
+		"token_type": "Bearer",
+		"expires_in": 3600,
+		"email": "bob@defense.gov",
+		"org_name": "Defense Systems",
+		"org_id": "org_defense_1"
+	}`)
+
+	var resp auth.OAuthTokenResponse
+	if err := json.Unmarshal(jsonBlob, &resp); err != nil {
+		t.Fatalf("failed to unmarshal OAuthTokenResponse: %v", err)
+	}
+
+	if resp.Email != "bob@defense.gov" {
+		t.Errorf("expected email bob@defense.gov, got %s", resp.Email)
+	}
+	if resp.OrgName != "Defense Systems" {
+		t.Errorf("expected org_name Defense Systems, got %s", resp.OrgName)
+	}
+	if resp.OrgID != "org_defense_1" {
+		t.Errorf("expected org_id org_defense_1, got %s", resp.OrgID)
+	}
+}
+
 func TestGetToken_LoadsFromCredentialsJson(t *testing.T) {
 	// Clear any environment variables that might shadow credentials.json
 	os.Unsetenv("LORIKEET_TOKEN")
@@ -83,13 +109,31 @@ func TestGetToken_LoadsFromCredentialsJson(t *testing.T) {
 		AccessToken: "test-oauth-token-xyz-987",
 		UserEmail:   "dev@example.com",
 		OrgName:     "Test Org",
+		OrgID:       "org_test_123",
+		AuthMethod:  "talon-oauth",
 	}
 	if err := auth.SaveCredentials(creds); err != nil {
 		t.Fatalf("SaveCredentials failed: %v", err)
+	}
+
+	loaded, err := auth.LoadCredentials()
+	if err != nil {
+		t.Fatalf("LoadCredentials failed: %v", err)
+	}
+	if loaded.UserEmail != "dev@example.com" {
+		t.Errorf("expected user email dev@example.com, got %s", loaded.UserEmail)
+	}
+	if loaded.OrgName != "Test Org" {
+		t.Errorf("expected org name Test Org, got %s", loaded.OrgName)
+	}
+	if loaded.AuthMethod != "talon-oauth" {
+		t.Errorf("expected auth method talon-oauth, got %s", loaded.AuthMethod)
 	}
 
 	tok := auth.GetToken()
 	if tok != "test-oauth-token-xyz-987" {
 		t.Errorf("expected 'test-oauth-token-xyz-987' from credentials.json, got '%s'", tok)
 	}
+
+	_ = auth.ClearCredentials()
 }

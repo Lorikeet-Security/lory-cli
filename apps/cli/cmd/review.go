@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/reviewer"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/reviewer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func RunReview(args []string) error {

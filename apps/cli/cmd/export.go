@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/badge"
-	"github.com/lorikeetsecurity/lory/pkg/export"
-	"github.com/lorikeetsecurity/lory/pkg/scanner"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/badge"
+	"github.com/Lorikeet-Security/lory-cli/pkg/export"
+	"github.com/Lorikeet-Security/lory-cli/pkg/scanner"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func RunExport(args []string) error {

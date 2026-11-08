@@ -11,11 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/reviewer"
-	"github.com/lorikeetsecurity/lory/pkg/types"
-	"github.com/lorikeetsecurity/lory/pkg/webscan"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/reviewer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/webscan"
 )
 
 type JSONRPCRequest struct {

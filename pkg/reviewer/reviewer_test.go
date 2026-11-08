@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/reviewer"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/reviewer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func TestReviewFile_MinSeverityFilter(t *testing.T) {

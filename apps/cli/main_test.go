@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/apps/cli/cmd"
+	"github.com/Lorikeet-Security/lory-cli/apps/cli/cmd"
 )
 
 func TestMainShorthand_URLRecognition(t *testing.T) {

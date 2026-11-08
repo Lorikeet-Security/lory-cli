@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/scanner"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/scanner"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func RunFindings(args []string) error {

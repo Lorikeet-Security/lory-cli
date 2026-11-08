@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lorikeetsecurity/lory/apps/cli/cmd"
-	"github.com/lorikeetsecurity/lory/pkg/mcp"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/apps/cli/cmd"
+	"github.com/Lorikeet-Security/lory-cli/pkg/mcp"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
 )
 
 const Version = "1.2.0"

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/analyzer"
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/analyzer"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 var ignoredDirs = map[string]bool{

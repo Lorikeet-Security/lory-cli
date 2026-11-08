@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 // GeneratePDFEvidence produces a valid binary PDF 1.4 document containing

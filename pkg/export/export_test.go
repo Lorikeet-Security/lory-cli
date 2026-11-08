@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lorikeetsecurity/lory/pkg/export"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/export"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {

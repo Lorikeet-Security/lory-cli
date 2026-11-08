@@ -9,10 +9,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/lorikeetsecurity/lory/pkg/auth"
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/tui"
-	"github.com/lorikeetsecurity/lory/pkg/webscan"
+	"github.com/Lorikeet-Security/lory-cli/pkg/auth"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/tui"
+	"github.com/Lorikeet-Security/lory-cli/pkg/webscan"
 )
 
 func IsWebTarget(target string) bool {

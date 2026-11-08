@@ -3,8 +3,8 @@ package webscan
 import (
 	"context"
 
-	"github.com/lorikeetsecurity/lory/pkg/client"
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/client"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 // ScanTargetURL performs web security checks via the Lorikeet platform scan-api endpoint

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lorikeetsecurity/lory/pkg/types"
+	"github.com/Lorikeet-Security/lory-cli/pkg/types"
 )
 
 const (
