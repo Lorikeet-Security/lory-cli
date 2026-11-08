@@ -127,34 +127,7 @@ function renderCallbackHTML(userDisplay: string): string {
 <body>
   <div class="card">
     <div class="brand-header">
-      <svg width="34" height="34" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lorikeet Security Logo">
-        <defs>
-          <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#db6574" />
-            <stop offset="100%" stop-color="#ba5663" />
-          </linearGradient>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#ba5663" flood-opacity="0.35"/>
-          </filter>
-        </defs>
-        <path d="M64 8 L112 28 L112 60 C112 90 90 112 64 120 C38 112 16 90 16 60 L16 28 Z"
-              fill="url(#shieldGrad)" stroke="#142b49" stroke-width="2" filter="url(#glow)"/>
-        <path d="M64 18 L102 34 L102 58 C102 84 84 102 64 110 C44 102 26 84 26 58 L26 34 Z"
-              fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-        <g transform="translate(64,62) scale(0.72)">
-          <ellipse cx="0" cy="8" rx="18" ry="24" fill="#142b49"/>
-          <circle cx="0" cy="-22" r="14" fill="#142b49"/>
-          <path d="M14 -24 L28 -20 L14 -18 Z" fill="#ffffff" opacity="0.95"/>
-          <circle cx="6" cy="-24" r="3" fill="#ffffff"/>
-          <circle cx="7" cy="-24" r="1.5" fill="#142b49"/>
-          <path d="M-6 -4 Q-30 4 -24 28 L-2 20 Z" fill="rgba(255,255,255,0.2)"/>
-          <path d="M-8 28 L-14 44 L0 36 L14 44 L8 28" fill="#142b49"/>
-        </g>
-      </svg>
-      <div>
-        <span class="brand-title">Lorikeet</span>
-        <span class="brand-subtitle">SECURITY</span>
-      </div>
+      <img src="https://lorikeetsecurity.com/images/lorikeet-logo-banner-dark.png" alt="Lorikeet Security" style="height: 38px; width: auto;" />
     </div>
     <h1>Authentication Successful</h1>
     <div class="user-pill">Logged in as <strong>${safeUser}</strong></div>
@@ -183,7 +156,7 @@ function postForm(urlStr: string, body: string): Promise<{ statusCode: number; b
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(body),
         'Accept': 'application/json',
-        'User-Agent': 'Lorikeet-Lory-CLI/1.2.1',
+        'User-Agent': 'Lorikeet-Lory-CLI/1.2.2',
       },
       timeout: 10000,
     };
@@ -219,7 +192,7 @@ function getJson(urlStr: string, token: string): Promise<{ statusCode: number; d
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
-        'User-Agent': 'Lorikeet-Lory-CLI/1.2.1',
+        'User-Agent': 'Lorikeet-Lory-CLI/1.2.2',
       },
       timeout: 8000,
     };

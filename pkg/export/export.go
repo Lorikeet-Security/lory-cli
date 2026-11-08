@@ -76,7 +76,7 @@ func GenerateSARIF(findings []types.VulnerabilityFinding) ([]byte, error) {
 				"tool": map[string]interface{}{
 					"driver": map[string]interface{}{
 						"name":            "Lorikeet Lory",
-						"version":         "1.2.1",
+						"version":         "1.2.2",
 						"informationUri": "https://lorikeetsecurity.com/lory",
 						"rules":           rules,
 					},

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://lorikeetsecurity.com">
-    <img src="assets/brand/lorikeet-logo-banner.png" alt="Lorikeet Security Banner" width="360" />
+    <img src="https://lorikeetsecurity.com/images/lorikeet-logo-banner-dark.png" alt="Lorikeet Security" width="460" />
   </a>
 </p>
 
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lorikeet-Security/lory-cli/releases"><img src="https://img.shields.io/badge/release-v1.2.1-db6574?style=for-the-badge&logo=github&logoColor=white" alt="Release v1.2.1"></a>
+  <a href="https://github.com/Lorikeet-Security/lory-cli/releases"><img src="https://img.shields.io/badge/release-v1.2.2-db6574?style=for-the-badge&logo=github&logoColor=white" alt="Release v1.2.2"></a>
   <a href="https://golang.org"><img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go 1.22+"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-Compatible-ba5663?style=for-the-badge&logo=anthropic&logoColor=white" alt="MCP Compatible"></a>
   <a href="https://github.com/oasis-tcs/sarif-spec"><img src="https://img.shields.io/badge/SARIF-2.1.0-4caf50?style=for-the-badge" alt="SARIF 2.1.0"></a>
@@ -59,7 +59,7 @@ Whether run in your terminal, embedded into **Claude Code** and **Cursor** via t
 ```text
 $ lory review .
 
-  LORIKEET SECURITY : Lory Code Reviewer v1.2.1
+  LORIKEET SECURITY : Lory Code Reviewer v1.2.2
   Target: /workspace/api (Go, TypeScript, Python)
   Rule Pack: OWASP Top 10 + ASVS 4.0.3 (1,969 rules loaded)
 
@@ -93,26 +93,30 @@ curl -fsSL https://lorikeetsecurity.com/install.sh | bash
 ### Method 2: Go Toolchain
 
 ```bash
+# Recommended: install directly as 'lory' into $GOPATH/bin
+go install github.com/Lorikeet-Security/lory-cli/cmd/lory@latest
+
+# Or install module root package (creates 'lory-cli')
 go install github.com/Lorikeet-Security/lory-cli@latest
 ```
 
-### Method 3: Pre-compiled Standalone Binaries (v1.2.1)
+### Method 3: Pre-compiled Standalone Binaries (v1.2.2)
 
 Zero external dependencies. Download and run:
 
 | Platform | Architecture | Binary Link | Checksum (SHA-256) |
 |---|---|---|---|
-| **Linux** | AMD64 (x86_64) | [`lory-linux-amd64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.1/lory-linux-amd64) | [checksums.txt](checksums.txt) |
-| **Linux** | ARM64 (aarch64) | [`lory-linux-arm64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.1/lory-linux-arm64) | [checksums.txt](checksums.txt) |
-| **macOS** | Apple Silicon (M-series) | [`lory-darwin-arm64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.1/lory-darwin-arm64) | [checksums.txt](checksums.txt) |
-| **macOS** | Intel (x86_64) | [`lory-darwin-amd64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.1/lory-darwin-amd64) | [checksums.txt](checksums.txt) |
-| **Windows** | x86_64 | [`lory-windows-amd64.exe`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.1/lory-windows-amd64.exe) | [checksums.txt](checksums.txt) |
+| **Linux** | AMD64 (x86_64) | [`lory-linux-amd64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.2/lory-linux-amd64) | [checksums.txt](checksums.txt) |
+| **Linux** | ARM64 (aarch64) | [`lory-linux-arm64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.2/lory-linux-arm64) | [checksums.txt](checksums.txt) |
+| **macOS** | Apple Silicon (M-series) | [`lory-darwin-arm64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.2/lory-darwin-arm64) | [checksums.txt](checksums.txt) |
+| **macOS** | Intel (x86_64) | [`lory-darwin-amd64`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.2/lory-darwin-amd64) | [checksums.txt](checksums.txt) |
+| **Windows** | x86_64 | [`lory-windows-amd64.exe`](https://github.com/Lorikeet-Security/lory-cli/releases/download/v1.2.2/lory-windows-amd64.exe) | [checksums.txt](checksums.txt) |
 
 ### Verification
 
 ```bash
 lory version
-# Output: lory version 1.2.1 (Lorikeet Security AI Reviewer)
+# Output: lory version 1.2.2 (Lorikeet Security AI Reviewer)
 ```
 
 ---

@@ -18,7 +18,7 @@ Protocol specifications:
 - **Protocol Version**: `2024-11-05`
 - **Transport**: `stdio`
 - **Server Name**: `lorikeet-lory-mcp`
-- **Server Version**: `1.2.1`
+- **Server Version**: `1.2.2`
 
 ---
 
@@ -112,7 +112,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":
 
 Expected response:
 ```json
-{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{"listChanged":false}},"protocolVersion":"2024-11-05","serverInfo":{"name":"lorikeet-lory-mcp","version":"1.2.1"}}}
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{"listChanged":false}},"protocolVersion":"2024-11-05","serverInfo":{"name":"lorikeet-lory-mcp","version":"1.2.2"}}}
 ```
 
 List tools:
