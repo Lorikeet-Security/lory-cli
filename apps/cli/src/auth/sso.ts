@@ -183,7 +183,7 @@ function postForm(urlStr: string, body: string): Promise<{ statusCode: number; b
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(body),
         'Accept': 'application/json',
-        'User-Agent': 'Lorikeet-Lory-CLI/1.2.0',
+        'User-Agent': 'Lorikeet-Lory-CLI/1.2.1',
       },
       timeout: 10000,
     };
@@ -219,7 +219,7 @@ function getJson(urlStr: string, token: string): Promise<{ statusCode: number; d
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
-        'User-Agent': 'Lorikeet-Lory-CLI/1.2.0',
+        'User-Agent': 'Lorikeet-Lory-CLI/1.2.1',
       },
       timeout: 8000,
     };

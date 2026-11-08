@@ -51,8 +51,8 @@ func TestSARIF_NoDuplicateRuleIDs(t *testing.T) {
 	driver := tool["driver"].(map[string]interface{})
 	rules := driver["rules"].([]interface{})
 
-	if v, ok := driver["version"].(string); !ok || v != "1.2.0" {
-		t.Errorf("expected driver version 1.2.0, got %v", driver["version"])
+	if v, ok := driver["version"].(string); !ok || v != "1.2.1" {
+		t.Errorf("expected driver version 1.2.1, got %v", driver["version"])
 	}
 
 	seen := make(map[string]bool)

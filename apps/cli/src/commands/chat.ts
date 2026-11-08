@@ -14,7 +14,7 @@ export async function handleChat(): Promise<void> {
   });
 
   const promptUser = () => {
-    rl.question(`${Colors.green}lory ❯${Colors.reset} `, (input) => {
+    rl.question(`${Colors.green}lory ${Colors.reset} `, (input) => {
       const line = input.trim();
       if (!line) return promptUser();
       if (line === '/exit' || line === '/quit' || line === 'exit' || line === 'quit') {
@@ -27,7 +27,7 @@ export async function handleChat(): Promise<void> {
         return promptUser();
       }
 
-      console.log(`\n${Colors.cyan}🦜 Lory:${Colors.reset} Inspected query "${line}". All target routes validated.\n`);
+      console.log(`\n${Colors.cyan} Lory:${Colors.reset} Inspected query "${line}". All target routes validated.\n`);
       promptUser();
     });
   };

@@ -28,7 +28,7 @@ func PrintBanner() {
 | |      / _ \ |  _ \ \ \ / /  ` + ColorCyan + ColorBold + `LORIKEET SECURITY` + ColorReset + `
 | |     | | | || |_) | \ V /   ` + ColorDim + `AI Security Analyst & PTaaS Platform` + ColorReset + `
 | |___  | |_| ||  _ <   | |    ` + ColorGreen + `Lory Review & Web Security Scanner` + ColorReset + `
-|_____|  \___/ |_| \_\  |_|    ` + ColorGray + `v1.2.0` + ColorReset + `
+|_____|  \___/ |_| \_\  |_|    ` + ColorGray + `v1.2.1` + ColorReset + `
 `
 	fmt.Println(banner)
 }

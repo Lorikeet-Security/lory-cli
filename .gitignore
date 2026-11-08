@@ -1,10 +1,11 @@
 # Compiled binaries
-lory
-lory-*
+/lory
+/lory-*
 *.exe
 *.test
 dist/
 bin/
+
 
 # Credentials and local state
 .lorikeet/

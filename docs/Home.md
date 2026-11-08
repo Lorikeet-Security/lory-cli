@@ -39,7 +39,7 @@ go install github.com/Lorikeet-Security/lory-cli@latest
 #### Verification
 ```bash
 lory version
-# Output: lory version 1.2.0 (Lorikeet Security AI Reviewer)
+# Output: lory version 1.2.1 (Lorikeet Security AI Reviewer)
 ```
 
 ---
@@ -72,14 +72,14 @@ lory badge staging.example.com --style=shield --theme=dark
 
 | Feature | Local Engine (Air-Gapped) | Lorikeet Platform Connected |
 | :--- | :---: | :---: |
-| **AST & Pattern Matching** | ✅ Yes | ✅ Yes |
-| **CWE Classification** | ✅ Yes | ✅ Yes |
-| **Real-Time SSE Streaming** | Offline buffer | ✅ Real-time SSE |
-| **In-Place Code Auto-Fixes** | ✅ Built-in templates | ✅ Lory AI Synthesized Patches |
-| **PTaaS Web Audit** | ❌ Requires network | ✅ Full audit via `/ptaas/tools/scan-api.php` |
-| **Trust Badge Attestation** | Local SVG generation | ✅ Cryptographically verified attestation |
-| **MCP Server Mode** | ✅ Yes | ✅ Yes |
-| **SARIF 2.1.0 Export** | ✅ Yes | ✅ Yes |
+| **AST & Pattern Matching** | [PASS] Yes | [PASS] Yes |
+| **CWE Classification** | [PASS] Yes | [PASS] Yes |
+| **Real-Time SSE Streaming** | Offline buffer | [PASS] Real-time SSE |
+| **In-Place Code Auto-Fixes** | [PASS] Built-in templates | [PASS] Lory AI Synthesized Patches |
+| **PTaaS Web Audit** | [FAIL] Requires network | [PASS] Full audit via `/ptaas/tools/scan-api.php` |
+| **Trust Badge Attestation** | Local SVG generation | [PASS] Cryptographically verified attestation |
+| **MCP Server Mode** | [PASS] Yes | [PASS] Yes |
+| **SARIF 2.1.0 Export** | [PASS] Yes | [PASS] Yes |
 
 ---
 

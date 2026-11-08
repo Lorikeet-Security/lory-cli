@@ -42,7 +42,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -ldflags="-s -w" -o dist/${{ matrix.bin }} apps/cli/main.go
+          go build -ldflags="-s -w" -o dist/${{ matrix.bin }} .
 
       - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4

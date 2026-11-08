@@ -27,7 +27,7 @@ func RunChat(args []string) error {
 	scannerInput := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Printf("%slory ❯%s ", tui.ColorGreen, tui.ColorReset)
+		fmt.Printf("%slory %s ", tui.ColorGreen, tui.ColorReset)
 		if !scannerInput.Scan() {
 			break
 		}
@@ -59,7 +59,7 @@ func RunChat(args []string) error {
 			parts := strings.Fields(line)
 			if len(parts) > 1 {
 				targetURL = parts[1]
-				fmt.Printf("%s✔ Target updated to:%s %s\n\n", tui.ColorGreen, tui.ColorReset, targetURL)
+				fmt.Printf("%s Target updated to:%s %s\n\n", tui.ColorGreen, tui.ColorReset, targetURL)
 			} else {
 				fmt.Printf("Current target URL: %s\n\n", targetURL)
 			}
@@ -130,16 +130,16 @@ func RunChat(args []string) error {
 				continue
 			}
 			if res.Resolved {
-				fmt.Printf("%s✔ %s is RESOLVED!%s (%s)\n\n", tui.ColorGreen, res.FindingID, tui.ColorReset, res.Observation)
+				fmt.Printf("%s %s is RESOLVED!%s (%s)\n\n", tui.ColorGreen, res.FindingID, tui.ColorReset, res.Observation)
 			} else {
-				fmt.Printf("%s✗ %s is STILL VULNERABLE!%s (%s)\n\n", tui.ColorRed, res.FindingID, tui.ColorReset, res.Observation)
+				fmt.Printf("%s %s is STILL VULNERABLE!%s (%s)\n\n", tui.ColorRed, res.FindingID, tui.ColorReset, res.Observation)
 			}
 			continue
 		}
 
 		// Conversational AI Triage mode
 		tui.Spin("Lory ReAct Orchestrator analyzing...", 300)
-		fmt.Printf("\n%s🦜 Lory:%s I've inspected your query regarding \"%s\".\n", tui.ColorCyan, tui.ColorReset, line)
+		fmt.Printf("\n%s Lory:%s I've inspected your query regarding \"%s\".\n", tui.ColorCyan, tui.ColorReset, line)
 		fmt.Printf("Based on the AST route mapping and dual-validation telemetry:\n")
 		fmt.Printf("1. Target application baseline has active endpoint route tracking.\n")
 		fmt.Printf("2. For input validation issues, ensure parameter binding or strict schema validation is applied at middleware boundaries.\n")

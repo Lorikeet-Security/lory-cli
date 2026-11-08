@@ -107,9 +107,9 @@ The platform computes an overall posture score from **0 to 100**:
 
 | Score Range | Status | Assessment | Trust Badge Eligibility |
 | :---: | :---: | :--- | :---: |
-| **85 – 100** | **VERIFIED** | Outstanding security controls; passes all high/critical audits. | ✅ Eligible |
-| **70 – 84** | **PASSED** | Acceptable posture; minor low-severity recommendations. | ✅ Eligible |
-| **< 70** | **AUDITED** | Remediation required for key controls before qualification. | ❌ Ineligible |
+| **85 – 100** | **VERIFIED** | Outstanding security controls; passes all high/critical audits. | [PASS] Eligible |
+| **70 – 84** | **PASSED** | Acceptable posture; minor low-severity recommendations. | [PASS] Eligible |
+| **< 70** | **AUDITED** | Remediation required for key controls before qualification. | [FAIL] Ineligible |
 
 When your application achieves a qualifying score of 70+, `lory` automatically displays a prompt to generate your verified trust badge:
 
