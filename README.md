@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://lorikeetsecurity.com">
-    <img src="assets/brand/lorikeet-logo-banner.png" alt="Lorikeet Security Banner" width="720" />
+    <img src="assets/brand/lorikeet-logo-banner.png" alt="Lorikeet Security Banner" width="360" />
   </a>
 </p>
 
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <em>Real-time AST code auditing, instant vulnerability auto-remediation, active PTaaS verification, and native Model Context Protocol (MCP) server.</em>
+  <em>Real-time AST code auditing, vulnerability auto-remediation, active PTaaS verification, and native Model Context Protocol (MCP) server.</em>
 </p>
 
 <p align="center">
@@ -22,43 +22,30 @@
 
 ---
 
-## Meet Lory: Your Autonomous AI Security Analyst
+## Overview
 
-<table align="center" border="0" style="border-collapse: collapse; border: none;">
-  <tr>
-    <td align="center" width="40%" style="border: none; vertical-align: middle;">
-      <img src="assets/brand/lory-standing.png" alt="Lory Mascot" width="300" />
-    </td>
-    <td width="60%" style="border: none; vertical-align: middle; padding-left: 20px;">
-      <h3>"Securing code before exploits leave the branch."</h3>
-      <p>
-        <strong>Lory</strong> is the autonomous AI security analyst engineered by <strong>Lorikeet Security</strong>. Lory pairs deep static AST semantics with active dynamic penetration testing (PTaaS) playbooks to find high-impact vulnerabilities, synthesize verified proof-of-concepts, and deploy clean, deterministic patches straight into your source code.
-      </p>
-      <p>
-        Whether embedded into your <strong>Claude Code</strong> / <strong>Cursor</strong> workflow via Model Context Protocol (MCP), invoked on your terminal workbench, or gating production in CI/CD pipelines, Lory delivers instant, actionable security intelligence without false-positive fatigue.
-      </p>
-    </td>
-  </tr>
-</table>
+Lory is the command-line security analyst for the **Lorikeet Security** platform. Built in Go with Cobra and Bubbletea, `lory` pairs static AST code analysis with active penetration testing (PTaaS) verification.
+
+Whether run in your terminal, embedded into **Claude Code** and **Cursor** via the Model Context Protocol (MCP), or gating pull requests in CI/CD, `lory` delivers deterministic, actionable security intelligence without false-positive noise.
 
 ---
 
 ## Key Capabilities
 
-<table>
+<table align="center" width="100%">
   <tr>
     <td width="33%" align="center">
-      <img src="assets/brand/lory-avatar.png" width="160" alt="Lory Cyber Avatar"/><br/>
+      <img src="assets/brand/lory-coding.png" width="100" alt="Lory Sitting"/><br/><br/>
       <strong>Talon OAuth SSO</strong><br/>
-      RFC 7636 PKCE loopback authentication seamlessly linking local CLI sessions to your Lorikeet enterprise organization.
+      RFC 7636 PKCE loopback authentication linking local CLI sessions to your Lorikeet enterprise organization.
     </td>
     <td width="33%" align="center">
-      <img src="assets/brand/lory-coding.png" width="160" alt="Lory Coding"/><br/>
+      <img src="assets/brand/lory-coding.png" width="100" alt="Lory Sitting"/><br/><br/>
       <strong>AI Review & Auto-Fix</strong><br/>
-      Streaming SSE AST semantic review across 25+ languages with 1-click in-place vulnerability remediation.
+      Streaming AST semantic review across 25+ languages with verified in-place vulnerability remediation.
     </td>
     <td width="33%" align="center">
-      <img src="assets/brand/lory-waving.png" width="160" alt="Lory Welcome"/><br/>
+      <img src="assets/brand/lory-coding.png" width="100" alt="Lory Sitting"/><br/><br/>
       <strong>PTaaS & Trust Seals</strong><br/>
       Live web target audits, 1-click exploit retesting, and cryptographic SVG trust badges for public verification.
     </td>
@@ -67,21 +54,31 @@
 
 ---
 
-## Architecture & Visual Overview
+## Terminal Review Session
 
-### 1. Interactive Terminal Workbench
-Experience rich, non-blocking terminal scanning with live vulnerability streaming, severity telemetry, and interactive triage:
+```text
+$ lory review .
 
-<p align="center">
-  <img src="assets/brand/lory-tui-workbench.png" alt="Lory TUI Workbench" width="850" />
-</p>
+  LORIKEET SECURITY : Lory Code Reviewer v1.2.1
+  Target: /workspace/api (Go, TypeScript, Python)
+  Rule Pack: OWASP Top 10 + ASVS 4.0.3 (1,969 rules loaded)
 
-### 2. Model Context Protocol (MCP) Native Sidecar
-Lory runs as a local stdio MCP server, arming <strong>Claude Code</strong>, <strong>Cursor</strong>, and <strong>Windsurf</strong> with real-time file auditing and web security tools:
+  [CRITICAL] SQL Injection via raw query concatenation
+  File:     src/db/queries.ts:42
+  CWE:      CWE-89: Improper Neutralization of Special Elements in SQL Command
+  Snippet:  const res = await db.query(`SELECT * FROM users WHERE id = '${id}'`);
+  Fix:      Use parameterized prepared statements:
+            const res = await db.query('SELECT * FROM users WHERE id = $1', [id]);
 
-<p align="center">
-  <img src="assets/brand/lory-mcp-architecture.png" alt="Lory MCP Architecture" width="850" />
-</p>
+  [HIGH] Missing Authentication Gate on Export Endpoint
+  File:     routes/export.py:18
+  CWE:      CWE-306: Missing Authentication for Critical Function
+  Snippet:  @app.route('/api/v1/export', methods=['POST'])
+  Fix:      Add @require_auth decorator to protect sensitive telemetry exports.
+
+  Summary: 2 findings (1 Critical, 1 High, 0 Medium, 0 Low) in 1.4s
+  Run `lory fix` to apply verified patches automatically.
+```
 
 ---
 
@@ -238,8 +235,8 @@ Arm your AI pair programmers with direct access to Lorikeet Security intelligenc
 | Command | Subcommands / Flags | Description |
 |---|---|---|
 | `login` | `--port`, `--api-key` | Authenticate via Talon OAuth 2.0 PKCE loopback or API key |
-| `whoami` | — | Inspect current Talon identity, organization, and token scopes |
-| `logout` | — | Securely clear credentials and terminate active session |
+| `whoami` | - | Inspect current Talon identity, organization, and token scopes |
+| `logout` | - | Securely clear credentials and terminate active session |
 | `review` | `[path]`, `--stream`, `--min-severity` | Run streaming AST AI code analysis on files or directories |
 | `fix` | `[path]`, `--dry-run` | Automatically apply verified vulnerability remediations |
 | `scan` | `[target]`, `--format=json\|text` | Dual-mode command: PTaaS audit on URLs or SAST on directories |
@@ -250,7 +247,7 @@ Arm your AI pair programmers with direct access to Lorikeet Security intelligenc
 | `badge` | `--style=pill\|shield`, `--theme` | Generate embeddable cryptographic trust seal badges |
 | `mcp` | `serve` | Launch high-performance stdio Model Context Protocol server |
 | `token` | `set`, `show`, `clear` | Manage Lorikeet Security platform API access tokens |
-| `version` | — | Display CLI build version and engine runtime information |
+| `version` | - | Display CLI build version and engine runtime information |
 
 ---
 
@@ -353,7 +350,6 @@ sudo make install
 ---
 
 <p align="center">
-  <img src="assets/brand/lory-standing.png" width="80" alt="Lory Logo" /><br/>
   <strong>Engineered with precision by <a href="https://lorikeetsecurity.com">Lorikeet Security</a></strong><br/>
   <em>Securing modern codebases with hybrid AI intelligence.</em>
 </p>
