@@ -49,7 +49,8 @@ func IsWebTarget(target string) bool {
 func RunScan(args []string) error {
 	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
 	baseURLFlag := fs.String("base-url", client.DefaultBaseURL, "Base URL of Lorikeet Security platform")
-	formatFlag := fs.String("format", "table", "Output format: table, json")
+	formatFlag := fs.String("format", "table", "Output format: table, json, mcp")
+	outputMCPFlag := fs.Bool("output-mcp", false, "Output scan findings in spec-compliant MCP resource format")
 	fixFlag := fs.Bool("fix", false, "Apply quick fixes if scanning code files")
 
 	// Partition arguments so flags are parsed even if target precedes them (e.g. `lory scan <target> [flags]`)
@@ -99,6 +100,18 @@ func RunScan(args []string) error {
 			return fmt.Errorf("web scan failed: %w", err)
 		}
 
+		if *outputMCPFlag || *formatFlag == "mcp" {
+			mcpPayload := map[string]interface{}{
+				"uri":      fmt.Sprintf("lorikeet://web-scan/%s", target),
+				"name":     "Lory Web Security Scan Results",
+				"mimeType": "application/json",
+				"text":     res,
+			}
+			data, _ := json.MarshalIndent(mcpPayload, "", "  ")
+			fmt.Println(string(data))
+			return nil
+		}
+
 		if *formatFlag == "json" {
 			data, _ := json.MarshalIndent(res, "", "  ")
 			fmt.Println(string(data))
@@ -107,8 +120,18 @@ func RunScan(args []string) error {
 
 		tui.RenderWebScanResult(res)
 		if res.Score >= 70 {
-			fmt.Printf("%s[Lorikeet Trust Badge]%s Assessment complete (%d/100). Run %s`lory badge %s`%s to generate your verified footer badge.\n\n", tui.ColorCyan, tui.ColorReset, res.Score, tui.ColorBold, res.Target, tui.ColorReset)
+			fmt.Printf("%s[Lorikeet Trust Badge]%s Assessment complete (%d/100). Run %s`lory badge %s`%s to generate your verified footer badge.\n", tui.ColorCyan, tui.ColorReset, res.Score, tui.ColorBold, res.Target, tui.ColorReset)
 		}
+
+		findingCount := 0
+		for _, cat := range res.Categories {
+			for _, chk := range cat.Checks {
+				if chk.Status == "fail" || chk.Status == "warn" {
+					findingCount++
+				}
+			}
+		}
+		tui.RenderPLGUpsell(findingCount, token != "", target)
 		return nil
 	}
 
@@ -116,6 +139,9 @@ func RunScan(args []string) error {
 	reviewArgs := []string{fmt.Sprintf("--format=%s", *formatFlag), fmt.Sprintf("--base-url=%s", *baseURLFlag)}
 	if *fixFlag {
 		reviewArgs = append(reviewArgs, "--fix")
+	}
+	if *outputMCPFlag {
+		reviewArgs = append(reviewArgs, "--output-mcp")
 	}
 	reviewArgs = append(reviewArgs, target)
 	return RunReview(reviewArgs)

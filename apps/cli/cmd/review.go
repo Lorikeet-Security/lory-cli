@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/lorikeetsecurity/lory/pkg/auth"
 	"github.com/lorikeetsecurity/lory/pkg/client"
@@ -23,7 +24,8 @@ func RunReview(args []string) error {
 	streamFlag := fs.Bool("stream", true, "Stream findings in real-time as they arrive")
 	maxLinesFlag := fs.Int("max-lines", 1500, "Maximum file line count before skipping")
 	minSevFlag := fs.String("min-severity", "low", "Minimum severity to report: critical, high, medium, low, info")
-	formatFlag := fs.String("format", "table", "Output format: table, json")
+	formatFlag := fs.String("format", "table", "Output format: table, json, mcp")
+	outputMCPFlag := fs.Bool("output-mcp", false, "Output scan findings in spec-compliant MCP resource format")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -101,7 +103,25 @@ func RunReview(args []string) error {
 		}
 	}
 
-	if *formatFlag == "json" {
+	if *outputMCPFlag || *formatFlag == "mcp" {
+		mcpPayload := map[string]interface{}{
+			"uri":      "lorikeet://code-review/findings",
+			"name":     "Lory Code Review Findings",
+			"mimeType": "application/json",
+			"text": map[string]interface{}{
+				"target":         targets[0],
+				"timestamp":      time.Now().UTC().Format(time.RFC3339),
+				"total_findings": totalFindings,
+				"findings":       allFindings,
+			},
+		}
+		data, err := json.MarshalIndent(mcpPayload, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(data))
+		return nil
+	} else if *formatFlag == "json" {
 		out := map[string]interface{}{
 			"total_findings": totalFindings,
 			"findings":       allFindings,
@@ -119,6 +139,7 @@ func RunReview(args []string) error {
 		} else if totalFindings > 0 {
 			fmt.Printf("%sTip:%s Run with %s--fix%s to apply Lory's quick fixes directly to your code.\n\n", tui.ColorCyan, tui.ColorReset, tui.ColorYellow, tui.ColorReset)
 		}
+		tui.RenderPLGUpsell(totalFindings, token != "", targets[0])
 	}
 
 	if totalFindings > 0 && os.Getenv("CI") != "" {

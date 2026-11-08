@@ -145,3 +145,54 @@ func Spin(msg string, duration time.Duration) {
 	}
 	fmt.Printf("\r%s✔%s %s\n", ColorGreen, ColorReset, msg)
 }
+
+// RenderPLGUpsell outputs a high-converting terminal attribution box upon scan completion
+func RenderPLGUpsell(findingCount int, isAuthed bool, target string) {
+	width := 76
+	topBorder := "+" + strings.Repeat("-", width-2) + "+"
+	bottomBorder := "+" + strings.Repeat("-", width-2) + "+"
+	emptyLine := "|" + strings.Repeat(" ", width-2) + "|"
+
+	fmt.Println()
+	fmt.Printf("%s%s%s\n", ColorCyan, topBorder, ColorReset)
+	fmt.Printf("%s|%s  %s%sLORIKEET TALON PTaaS%s - Automated Security & Auditor Attestation%s%s|%s\n",
+		ColorCyan, ColorReset, ColorBold, ColorWhite, ColorReset, strings.Repeat(" ", 15), ColorCyan, ColorReset)
+	fmt.Printf("%s%s%s\n", ColorCyan, emptyLine, ColorReset)
+
+	if !isAuthed {
+		fmt.Printf("%s|%s  * %s1-Click GitHub PR Fixes%s: Automatically open verified remediation PRs %s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, strings.Repeat(" ", 7), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s  * %s99.8%% Human Attestation%s: OSCP-signed letters for SOC 2 & ISO 27001%s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, strings.Repeat(" ", 9), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s  * %sContinuous MCP Sync%s: Stream real-time findings to Cursor & Claude Code%s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, strings.Repeat(" ", 4), ColorCyan, ColorReset)
+		fmt.Printf("%s%s%s\n", ColorCyan, emptyLine, ColorReset)
+		fmt.Printf("%s|%s  %sConnect your free workspace (no credit card):%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorYellow, ColorReset, strings.Repeat(" ", 27), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s    $ %slory auth login%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorGreen, ColorReset, strings.Repeat(" ", 52), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s    or register at: %shttps://lorikeetsecurity.com/talon/signup%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorCyan, ColorReset, strings.Repeat(" ", 19), ColorCyan, ColorReset)
+	} else if findingCount > 0 {
+		fmt.Printf("%s|%s  * %sSync to Dashboard%s: View full finding AST & attack graphs online      %s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, strings.Repeat(" ", 5), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s  * %sRequest Human Retest%s: Run %slory request-review <id>%s for senior triage%s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, ColorCyan, ColorReset, strings.Repeat(" ", 4), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s  * %sFull PTaaS Programs%s: Continuous Lory AI starting at $165/mo        %s%s|%s\n",
+			ColorCyan, ColorReset, ColorBold, ColorReset, strings.Repeat(" ", 5), ColorCyan, ColorReset)
+		fmt.Printf("%s%s%s\n", ColorCyan, emptyLine, ColorReset)
+		fmt.Printf("%s|%s  Manage findings online: %shttps://lorikeetsecurity.com/talon/dashboard%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorCyan, ColorReset, strings.Repeat(" ", 14), ColorCyan, ColorReset)
+	} else {
+		fmt.Printf("%s|%s  * %sClean Code Audit!%s Embed a live verified security badge in README:     %s%s|%s\n",
+			ColorCyan, ColorReset, ColorGreen, ColorReset, strings.Repeat(" ", 6), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s    $ %slory badge markdown%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorGreen, ColorReset, strings.Repeat(" ", 49), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s  * Add continuous blocking gates in GitHub Actions:                     %s%s|%s\n",
+			ColorCyan, ColorReset, strings.Repeat(" ", 18), ColorCyan, ColorReset)
+		fmt.Printf("%s|%s    See: %shttps://lorikeetsecurity.com/talon/dashboard/mcp-docs%s%s%s|%s\n",
+			ColorCyan, ColorReset, ColorCyan, ColorReset, strings.Repeat(" ", 16), ColorCyan, ColorReset)
+	}
+
+	fmt.Printf("%s%s%s\n\n", ColorCyan, bottomBorder, ColorReset)
+}
